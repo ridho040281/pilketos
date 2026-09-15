@@ -49,6 +49,8 @@ class ApiIntegrationController extends Controller
      */
     public function pullData(Request $request): RedirectResponse
     {
+        set_time_limit(180);
+
         $setting = ElectionSetting::current();
 
         if (empty($setting->school_api_url)) {
@@ -81,7 +83,7 @@ class ApiIntegrationController extends Controller
                 $url .= $separator.'api_key='.urlencode($setting->school_api_key);
             }
 
-            $response = Http::timeout(20)
+            $response = Http::timeout(60)
                 ->withHeaders($headers)
                 ->get($url);
 

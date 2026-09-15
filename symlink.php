@@ -1,18 +1,17 @@
-﻿<?php
+<?php
 /**
  * Script Otomatis Pembuat Symlink Storage Laravel di Hosting / cPanel
  * Akses file ini lewat browser: https://pilketos.mtsn1blitar.sch.id/symlink.php
  */
-
-if (file_exists(__DIR__ . '/../storage/app/public')) {
-    $target = realpath(__DIR__ . '/../storage/app/public');
-    $link = __DIR__ . '/storage';
-} elseif (file_exists(__DIR__ . '/storage/app/public')) {
-    $target = realpath(__DIR__ . '/storage/app/public');
-    $link = __DIR__ . '/public/storage';
+if (file_exists(__DIR__.'/../storage/app/public')) {
+    $target = realpath(__DIR__.'/../storage/app/public');
+    $link = __DIR__.'/storage';
+} elseif (file_exists(__DIR__.'/storage/app/public')) {
+    $target = realpath(__DIR__.'/storage/app/public');
+    $link = __DIR__.'/public/storage';
 } else {
-    $target = __DIR__ . '/storage/app/public';
-    $link = __DIR__ . '/public/storage';
+    $target = __DIR__.'/storage/app/public';
+    $link = __DIR__.'/public/storage';
     @mkdir($target, 0755, true);
 }
 
@@ -46,30 +45,30 @@ header('Content-Type: text/html; charset=utf-8');
         echo "<div class='warning'>ℹ️ Shortcut/link lama yang rusak berhasil dibersihkan.</div>";
     }
 
-    if (!file_exists($target)) {
-        @mkdir($target, 0755, true);
-    }
+if (! file_exists($target)) {
+    @mkdir($target, 0755, true);
+}
 
-    $created = false;
-    if (function_exists('symlink')) {
-        $created = @symlink($target, $link);
-    }
+$created = false;
+if (function_exists('symlink')) {
+    $created = @symlink($target, $link);
+}
 
-    if ($created) {
-        echo "<div class='success'>";
-        echo "<strong>BERHASIL! 🎉</strong><br>";
-        echo "Tautan storage server berhasil dibuat. Gambar Logo Sekolah dan Favicon sekarang sudah dapat tampil normal di internet.";
-        echo "</div>";
-        echo "<p style='font-size: 13px; color: #64748b;'><em>Catatan: Demi keamanan, Anda dapat menghapus file <code>symlink.php</code> ini setelah selesai.</em></p>";
-        echo "<a href='/' class='btn'>Buka Aplikasi Pilketos &rarr;</a>";
-    } else {
-        echo "<div class='warning'>";
-        echo "<strong>PERINGATAN</strong><br>";
-        echo "Fungsi <code>symlink()</code> dinonaktifkan oleh penyedia hosting Anda. Namun tenang, rute fallback bawaan di aplikasi kami akan otomatis membaca gambar secara langsung.";
-        echo "</div>";
-        echo "<a href='/' class='btn'>Buka Aplikasi Pilketos &rarr;</a>";
-    }
-    ?>
+if ($created) {
+    echo "<div class='success'>";
+    echo '<strong>BERHASIL! 🎉</strong><br>';
+    echo 'Tautan storage server berhasil dibuat. Gambar Logo Sekolah dan Favicon sekarang sudah dapat tampil normal di internet.';
+    echo '</div>';
+    echo "<p style='font-size: 13px; color: #64748b;'><em>Catatan: Demi keamanan, Anda dapat menghapus file <code>symlink.php</code> ini setelah selesai.</em></p>";
+    echo "<a href='/' class='btn'>Buka Aplikasi Pilketos &rarr;</a>";
+} else {
+    echo "<div class='warning'>";
+    echo '<strong>PERINGATAN</strong><br>';
+    echo 'Fungsi <code>symlink()</code> dinonaktifkan oleh penyedia hosting Anda. Namun tenang, rute fallback bawaan di aplikasi kami akan otomatis membaca gambar secara langsung.';
+    echo '</div>';
+    echo "<a href='/' class='btn'>Buka Aplikasi Pilketos &rarr;</a>";
+}
+?>
 </div>
 </body>
 </html>

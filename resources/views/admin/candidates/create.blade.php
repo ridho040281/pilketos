@@ -16,13 +16,54 @@
             </a>
         </div>
 
-        <form action="{{ route('admin.candidates.store') }}" method="POST" enctype="multipart/form-data" class="space-y-5">
+        <form action="{{ route('admin.candidates.store') }}" method="POST" enctype="multipart/form-data" class="space-y-5" x-data="{
+            hasVice: {{ old('co_leader_name') ? 'true' : (old('has_vice', 'false') === 'true' ? 'true' : 'false') }},
+            coLeader: '{{ old('co_leader_name') }}'
+        }">
             @csrf
+
+            <!-- Opsi Format Calon -->
+            <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+                    Format Pemilihan Calon
+                </label>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label 
+                        @click="hasVice = false; coLeader = ''" 
+                        :class="!hasVice ? 'bg-white border-indigo-600 ring-2 ring-indigo-500/20 shadow-sm text-indigo-700 font-bold' : 'bg-white/60 border-slate-200 text-slate-600 hover:bg-white font-medium'"
+                        class="p-3.5 rounded-xl border flex items-center gap-3 cursor-pointer transition-all"
+                    >
+                        <input type="radio" name="has_vice" value="false" :checked="!hasVice" class="text-indigo-600 focus:ring-indigo-500">
+                        <div>
+                            <div class="text-xs font-bold flex items-center gap-1.5">
+                                <span>👤 Hanya Calon Ketua</span>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200">Tunggal</span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 mt-0.5">Pemilihan hanya ketua saja (tanpa calon wakil ketua)</div>
+                        </div>
+                    </label>
+
+                    <label 
+                        @click="hasVice = true" 
+                        :class="hasVice ? 'bg-white border-indigo-600 ring-2 ring-indigo-500/20 shadow-sm text-indigo-700 font-bold' : 'bg-white/60 border-slate-200 text-slate-600 hover:bg-white font-medium'"
+                        class="p-3.5 rounded-xl border flex items-center gap-3 cursor-pointer transition-all"
+                    >
+                        <input type="radio" name="has_vice" value="true" :checked="hasVice" class="text-indigo-600 focus:ring-indigo-500">
+                        <div>
+                            <div class="text-xs font-bold flex items-center gap-1.5">
+                                <span>👥 Pasangan Calon (Ketua & Wakil)</span>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">Paslon</span>
+                            </div>
+                            <div class="text-[11px] text-slate-500 mt-0.5">Pemilihan berpasangan (ada calon ketua & calon wakil)</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                        Nomor Urut Paslon <span class="text-rose-500">*</span>
+                        Nomor Urut Calon <span class="text-rose-500">*</span>
                     </label>
                     <input type="number" name="candidate_number" value="{{ old('candidate_number', $nextNumber) }}" min="1" required class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20">
                     @error('candidate_number') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
@@ -37,7 +78,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div class="grid grid-cols-1 gap-5" :class="hasVice ? 'sm:grid-cols-2' : ''">
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                         Nama Calon Ketua OSIS <span class="text-rose-500">*</span>
@@ -46,11 +87,11 @@
                     @error('leader_name') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
-                <div>
+                <div x-show="hasVice" x-cloak>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
                         Nama Calon Wakil Ketua OSIS <span class="text-rose-500">*</span>
                     </label>
-                    <input type="text" name="co_leader_name" value="{{ old('co_leader_name') }}" required placeholder="Contoh: Nabila Putri" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20">
+                    <input type="text" name="co_leader_name" x-model="coLeader" :disabled="!hasVice" placeholder="Contoh: Nabila Putri" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20">
                     @error('co_leader_name') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
                 </div>
             </div>

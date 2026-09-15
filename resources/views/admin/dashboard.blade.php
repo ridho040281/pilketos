@@ -112,7 +112,9 @@
                         </span>
                         <div class="min-w-0 flex-1">
                             <h4 class="text-sm font-bold text-slate-900 truncate">{{ $c->leader_name }}</h4>
-                            <p class="text-xs text-slate-500 truncate">& {{ $c->co_leader_name }}</p>
+                            @if(!empty($c->co_leader_name))
+                                <p class="text-xs text-slate-500 truncate">& {{ $c->co_leader_name }}</p>
+                            @endif
                         </div>
                     </div>
 

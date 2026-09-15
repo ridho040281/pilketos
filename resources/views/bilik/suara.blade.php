@@ -86,10 +86,12 @@
                             <span class="text-[10px] font-bold uppercase tracking-widest text-indigo-600">Calon Ketua</span>
                             <h3 class="text-lg font-bold text-slate-900 leading-tight">{{ $candidate->leader_name }}</h3>
                         </div>
-                        <div>
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Calon Wakil Ketua</span>
-                            <h4 class="text-base font-semibold text-slate-700 leading-tight">{{ $candidate->co_leader_name }}</h4>
-                        </div>
+                        @if(!empty($candidate->co_leader_name))
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Calon Wakil Ketua</span>
+                                <h4 class="text-base font-semibold text-slate-700 leading-tight">{{ $candidate->co_leader_name }}</h4>
+                            </div>
+                        @endif
                     </div>
 
                     <div class="space-y-2.5">
@@ -99,7 +101,7 @@
                             @click="openVision(
                                 '{{ sprintf('%02d', $candidate->candidate_number) }}',
                                 '{{ addslashes($candidate->leader_name) }}',
-                                '{{ addslashes($candidate->co_leader_name) }}',
+                                '{{ addslashes($candidate->co_leader_name ?? '') }}',
                                 '{{ addslashes($candidate->vision) }}',
                                 '{{ addslashes($candidate->mission) }}'
                             )"
@@ -111,17 +113,17 @@
 
                         <!-- Button Coblos -->
                         <button 
-                            type="button"
+                            type="button" 
                             @click="confirmVote({
                                 id: {{ $candidate->id }},
                                 number: '{{ sprintf('%02d', $candidate->candidate_number) }}',
                                 leader: '{{ addslashes($candidate->leader_name) }}',
-                                coLeader: '{{ addslashes($candidate->co_leader_name) }}'
+                                coLeader: '{{ addslashes($candidate->co_leader_name ?? '') }}'
                             })"
                             class="w-full py-3.5 px-4 rounded-2xl text-sm font-extrabold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2"
                         >
                             <svg class="w-5 h-5 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
-                            COBLOS PASLON {{ sprintf('%02d', $candidate->candidate_number) }}
+                            COBLOS {{ !empty($candidate->co_leader_name) ? 'PASLON' : 'CALON' }} {{ sprintf('%02d', $candidate->candidate_number) }}
                         </button>
                     </div>
                 </div>
@@ -140,7 +142,7 @@
                         <span class="w-9 h-9 rounded-xl bg-indigo-600 text-white font-black text-base flex items-center justify-center" x-text="activeVision.number"></span>
                         <div>
                             <h3 class="text-base font-bold text-slate-800" x-text="activeVision.leader"></h3>
-                            <p class="text-xs text-slate-500" x-text="'& ' + activeVision.coLeader"></p>
+                            <p class="text-xs text-slate-500" x-show="activeVision.coLeader" x-text="'& ' + activeVision.coLeader"></p>
                         </div>
                     </div>
                     <button @click="showVisionModal = false" class="text-slate-400 hover:text-slate-600 p-1">
@@ -180,15 +182,15 @@
                 </div>
 
                 <h3 class="text-xl font-extrabold text-slate-900">Konfirmasi Suara Anda</h3>
-                <p class="text-xs text-slate-500 mt-1">Apakah Anda yakin memilih pasangan calon berikut?</p>
+                <p class="text-xs text-slate-500 mt-1">Apakah Anda yakin memilih kandidat calon berikut?</p>
 
                 <div class="my-5 p-4 rounded-2xl bg-indigo-50/80 border border-indigo-200 text-slate-800 text-left flex items-center gap-3">
                     <div class="w-12 h-12 rounded-2xl bg-indigo-600 text-white font-black text-xl flex items-center justify-center shrink-0 shadow-md shadow-indigo-600/30" x-text="selectedCandidate?.number">
                     </div>
                     <div class="min-w-0">
-                        <div class="text-xs text-indigo-700 font-semibold uppercase tracking-wider" x-text="'Pasangan Calon No. ' + selectedCandidate?.number"></div>
+                        <div class="text-xs text-indigo-700 font-semibold uppercase tracking-wider" x-text="selectedCandidate?.coLeader ? ('Pasangan Calon No. ' + selectedCandidate?.number) : ('Calon No. ' + selectedCandidate?.number)"></div>
                         <div class="text-sm font-bold text-slate-900 truncate" x-text="selectedCandidate?.leader"></div>
-                        <div class="text-xs text-slate-600 truncate" x-text="'& ' + selectedCandidate?.coLeader"></div>
+                        <div class="text-xs text-slate-600 truncate" x-show="selectedCandidate?.coLeader" x-text="'& ' + selectedCandidate?.coLeader"></div>
                     </div>
                 </div>
 

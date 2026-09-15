@@ -7,12 +7,12 @@
 <div class="space-y-6">
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-            <h2 class="text-base font-bold text-slate-900">Daftar Pasangan Calon</h2>
-            <p class="text-xs text-slate-500">Paslon yang akan tampil pada bilik suara digital dan surat suara siswa</p>
+            <h2 class="text-base font-bold text-slate-900">Daftar Kandidat Calon OSIS</h2>
+            <p class="text-xs text-slate-500">Kandidat (Paslon atau Tunggal) yang akan tampil pada bilik suara digital dan surat suara</p>
         </div>
         <a href="{{ route('admin.candidates.create') }}" class="inline-flex items-center px-4 py-2.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 transition-colors">
             <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-            Tambah Paslon Baru
+            Tambah Calon Baru
         </a>
     </div>
 
@@ -23,10 +23,10 @@
                 <div>
                     <!-- Card Header -->
                     <div class="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-                        <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Nomor Urut</span>
-                        <span class="w-9 h-9 rounded-xl bg-indigo-600 text-white font-black text-lg flex items-center justify-center shadow-md shadow-indigo-600/30">
+                        <span class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Nomor Urut</span>
+                        <div class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-white text-base shadow-sm" style="background-color: {{ $c->color_tag ?? '#4f46e5' }}">
                             {{ sprintf('%02d', $c->candidate_number) }}
-                        </span>
+                        </div>
                     </div>
 
                     <!-- Photo -->
@@ -46,10 +46,18 @@
                             <span class="text-[10px] font-bold uppercase tracking-widest text-indigo-600">Calon Ketua</span>
                             <h4 class="text-base font-bold text-slate-900">{{ $c->leader_name }}</h4>
                         </div>
-                        <div>
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Calon Wakil Ketua</span>
-                            <h5 class="text-sm font-semibold text-slate-700">{{ $c->co_leader_name }}</h5>
-                        </div>
+                        @if(!empty($c->co_leader_name))
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Calon Wakil Ketua</span>
+                                <h5 class="text-sm font-semibold text-slate-700">{{ $c->co_leader_name }}</h5>
+                            </div>
+                        @else
+                            <div class="pt-1">
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-100 text-slate-500 text-[10px] font-medium border border-slate-200">
+                                    👤 Calon Tunggal (Hanya Ketua)
+                                </span>
+                            </div>
+                        @endif
                         <div class="pt-2 border-t border-slate-100 text-xs text-slate-500 line-clamp-2">
                             <strong>Visi:</strong> {{ $c->vision }}
                         </div>

@@ -224,7 +224,9 @@
                         </span>
                         <div class="text-left min-w-0">
                             <div class="text-xs font-bold text-slate-200 truncate">{{ $c->leader_name }}</div>
-                            <div class="text-[11px] text-slate-500 truncate">& {{ $c->co_leader_name }}</div>
+                            @if(!empty($c->co_leader_name))
+                                <div class="text-[11px] text-slate-500 truncate">& {{ $c->co_leader_name }}</div>
+                            @endif
                         </div>
                     </div>
                 @endforeach
@@ -258,7 +260,9 @@
                                 </span>
                                 <div>
                                     <h4 class="text-sm font-bold text-white leading-tight">{{ $candidate->leader_name }}</h4>
-                                    <p class="text-xs text-slate-400">& {{ $candidate->co_leader_name }}</p>
+                                    @if(!empty($candidate->co_leader_name))
+                                        <p class="text-xs text-slate-400">& {{ $candidate->co_leader_name }}</p>
+                                    @endif
                                 </div>
                             </div>
                         </div>

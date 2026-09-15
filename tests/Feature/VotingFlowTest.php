@@ -477,4 +477,35 @@ class VotingFlowTest extends TestCase
         Storage::disk('public')->assertMissing($oldFavicon);
         Storage::disk('public')->assertExists($setting->favicon);
     }
+
+    public function test_admin_can_create_single_chairman_candidate_without_vice(): void
+    {
+        $admin = User::create([
+            'name' => 'Admin Test',
+            'username' => 'admintest',
+            'email' => 'admin@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('admin.candidates.store'), [
+            'candidate_number' => 2,
+            'leader_name' => 'Ketua Tunggal',
+            'co_leader_name' => '',
+            'vision' => 'Visi Ketua',
+            'mission' => 'Misi Ketua',
+        ]);
+
+        $response->assertRedirect(route('admin.candidates.index'));
+        $this->assertDatabaseHas('candidates', [
+            'candidate_number' => 2,
+            'leader_name' => 'Ketua Tunggal',
+            'co_leader_name' => null,
+        ]);
+
+        $indexView = $this->actingAs($admin)->get(route('admin.candidates.index'));
+        $indexView->assertStatus(200);
+        $indexView->assertSee('Ketua Tunggal');
+        $indexView->assertSee('Calon Tunggal (Hanya Ketua)');
+    }
 }

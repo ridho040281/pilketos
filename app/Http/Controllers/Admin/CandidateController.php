@@ -41,7 +41,7 @@ class CandidateController extends Controller
         $validated = $request->validate([
             'candidate_number' => ['required', 'integer', 'min:1', 'unique:candidates,candidate_number'],
             'leader_name' => ['required', 'string', 'max:255'],
-            'co_leader_name' => ['required', 'string', 'max:255'],
+            'co_leader_name' => ['nullable', 'string', 'max:255'],
             'vision' => ['required', 'string'],
             'mission' => ['required', 'string'],
             'color_tag' => ['nullable', 'string', 'max:20'],
@@ -54,9 +54,10 @@ class CandidateController extends Controller
         }
 
         unset($validated['photo']);
+        $validated['co_leader_name'] = $request->filled('co_leader_name') ? trim($request->co_leader_name) : null;
         Candidate::create($validated);
 
-        return redirect()->route('admin.candidates.index')->with('success', 'Pasangan Calon berhasil ditambahkan.');
+        return redirect()->route('admin.candidates.index')->with('success', 'Data Calon / Kandidat berhasil ditambahkan.');
     }
 
     /**
@@ -75,7 +76,7 @@ class CandidateController extends Controller
         $validated = $request->validate([
             'candidate_number' => ['required', 'integer', 'min:1', 'unique:candidates,candidate_number,'.$candidate->id],
             'leader_name' => ['required', 'string', 'max:255'],
-            'co_leader_name' => ['required', 'string', 'max:255'],
+            'co_leader_name' => ['nullable', 'string', 'max:255'],
             'vision' => ['required', 'string'],
             'mission' => ['required', 'string'],
             'color_tag' => ['nullable', 'string', 'max:20'],
@@ -91,9 +92,10 @@ class CandidateController extends Controller
         }
 
         unset($validated['photo']);
+        $validated['co_leader_name'] = $request->filled('co_leader_name') ? trim($request->co_leader_name) : null;
         $candidate->update($validated);
 
-        return redirect()->route('admin.candidates.index')->with('success', 'Pasangan Calon berhasil diperbarui.');
+        return redirect()->route('admin.candidates.index')->with('success', 'Data Calon / Kandidat berhasil diperbarui.');
     }
 
     /**

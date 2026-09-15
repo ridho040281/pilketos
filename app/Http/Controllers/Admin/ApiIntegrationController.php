@@ -180,37 +180,59 @@ class ApiIntegrationController extends Controller
         }
 
         try {
-            $timestamp = time();
             $clientId = (string) ($setting->guru_api_client_id ?? '');
             $clientSecret = (string) ($setting->guru_api_secret ?? '');
             $apiToken = (string) ($setting->guru_api_token ?? '');
-            $payload = ''; // Kosong untuk GET request
+            $baseUrl = $setting->guru_api_url;
 
-            // Formula Signature HMAC SHA-256 (sesuai spesifikasi e-Jadwal MTsN 1 Blitar)
-            $rawString = $timestamp.$clientId.$payload;
-            $signature = ! empty($clientSecret) ? hash_hmac('sha256', $rawString, $clientSecret) : '';
+            $teachers = [];
+            $page = 1;
+            $maxPages = 20;
 
-            $headers = [
-                'Accept' => 'application/json',
-                'User-Agent' => 'Pilketos-API-Client/1.0',
-                'Authorization' => 'Bearer '.$apiToken,
-                'X-Client-ID' => $clientId,
-                'X-Timestamp' => (string) $timestamp,
-                'X-Signature' => $signature,
-            ];
+            do {
+                $timestamp = time();
+                $payload = ''; // Kosong untuk GET request
 
-            $url = $setting->guru_api_url;
+                // Formula Signature HMAC SHA-256 (sesuai spesifikasi e-Jadwal MTsN 1 Blitar)
+                $rawString = $timestamp.$clientId.$payload;
+                $signature = ! empty($clientSecret) ? hash_hmac('sha256', $rawString, $clientSecret) : '';
 
-            $response = Http::timeout(60)
-                ->withHeaders($headers)
-                ->get($url);
+                $headers = [
+                    'Accept' => 'application/json',
+                    'User-Agent' => 'Pilketos-API-Client/1.0',
+                    'Authorization' => 'Bearer '.$apiToken,
+                    'X-Client-ID' => $clientId,
+                    'X-Timestamp' => (string) $timestamp,
+                    'X-Signature' => $signature,
+                ];
 
-            if (! $response->successful()) {
-                return redirect()->route('admin.settings.edit', ['tab' => 'api_guru'])->with('error', 'Gagal menghubungi API Guru (HTTP '.$response->status().'): '.substr($response->body(), 0, 150));
-            }
+                // Tambahkan parameter per_page=100 & page untuk menarik seluruh data guru
+                $querySeparator = str_contains($baseUrl, '?') ? '&' : '?';
+                $url = $baseUrl.$querySeparator.'per_page=100&page='.$page;
 
-            $body = $response->json();
-            $teachers = $this->extractTeachersList($body);
+                $response = Http::timeout(60)
+                    ->withHeaders($headers)
+                    ->get($url);
+
+                if (! $response->successful()) {
+                    if ($page === 1) {
+                        return redirect()->route('admin.settings.edit', ['tab' => 'api_guru'])->with('error', 'Gagal menghubungi API Guru (HTTP '.$response->status().'): '.substr($response->body(), 0, 150));
+                    }
+                    break;
+                }
+
+                $body = $response->json();
+                $pageTeachers = $this->extractTeachersList($body);
+
+                if (empty($pageTeachers)) {
+                    break;
+                }
+
+                $teachers = array_merge($teachers, $pageTeachers);
+
+                $lastPage = $body['meta']['last_page'] ?? 1;
+                $page++;
+            } while ($page <= $lastPage && $page <= $maxPages);
 
             if (empty($teachers)) {
                 return redirect()->route('admin.settings.edit', ['tab' => 'api_guru'])->with('error', 'API merespons tetapi tidak ditemukan data guru dalam format JSON yang didukung.');

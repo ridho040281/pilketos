@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ElectionSetting;
+use App\Models\Voter;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -18,8 +19,10 @@ class SettingController extends Controller
     {
         $setting = ElectionSetting::current();
         $academicYears = ElectionSetting::getAcademicYearsList();
+        $totalVoters = Voter::count();
+        $votedCount = Voter::where('has_voted', true)->count();
 
-        return view('admin.settings.edit', compact('setting', 'academicYears'));
+        return view('admin.settings.edit', compact('setting', 'academicYears', 'totalVoters', 'votedCount'));
     }
 
     /**

@@ -83,11 +83,6 @@
                     DPT & Kartu Pemilih
                 </a>
 
-                <a href="{{ route('admin.api-integration.index') }}" class="flex items-center px-3.5 py-2.5 rounded-xl font-medium text-sm transition-colors {{ request()->routeIs('admin.api-integration.*') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                    Integrasi API Sekolah
-                </a>
-
                 <a href="{{ route('proyektor.index') }}" target="_blank" class="flex items-center px-3.5 py-2.5 rounded-xl font-medium text-sm text-emerald-400 hover:bg-slate-800 hover:text-emerald-300 transition-colors">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
                     Layar Proyektor

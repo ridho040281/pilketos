@@ -15,15 +15,11 @@ use Illuminate\View\View;
 class ApiIntegrationController extends Controller
 {
     /**
-     * Display API Integration management view.
+     * Display API Integration management view (redirect to Settings tab).
      */
-    public function index(): View
+    public function index(): RedirectResponse
     {
-        $setting = ElectionSetting::current();
-        $totalVoters = Voter::count();
-        $votedCount = Voter::where('has_voted', true)->count();
-
-        return view('admin.api-integration.index', compact('setting', 'totalVoters', 'votedCount'));
+        return redirect()->route('admin.settings.edit', ['tab' => 'api']);
     }
 
     /**
@@ -41,7 +37,7 @@ class ApiIntegrationController extends Controller
         $setting = ElectionSetting::current();
         $setting->update($validated);
 
-        return back()->with('success', 'Pengaturan koneksi API database sekolah berhasil disimpan.');
+        return redirect()->route('admin.settings.edit', ['tab' => 'api'])->with('success', 'Pengaturan koneksi API database sekolah berhasil disimpan.');
     }
 
     /**
@@ -54,7 +50,7 @@ class ApiIntegrationController extends Controller
         $setting = ElectionSetting::current();
 
         if (empty($setting->school_api_url)) {
-            return back()->with('error', 'URL API Database Sekolah belum dikonfigurasi. Silakan isi URL terlebih dahulu.');
+            return redirect()->route('admin.settings.edit', ['tab' => 'api'])->with('error', 'URL API Database Sekolah belum dikonfigurasi. Silakan isi URL terlebih dahulu.');
         }
 
         try {
@@ -88,14 +84,14 @@ class ApiIntegrationController extends Controller
                 ->get($url);
 
             if (! $response->successful()) {
-                return back()->with('error', 'Gagal menghubungi API Sekolah (HTTP '.$response->status().'): '.substr($response->body(), 0, 150));
+                return redirect()->route('admin.settings.edit', ['tab' => 'api'])->with('error', 'Gagal menghubungi API Sekolah (HTTP '.$response->status().'): '.substr($response->body(), 0, 150));
             }
 
             $body = $response->json();
             $students = $this->extractStudentsList($body);
 
             if (empty($students)) {
-                return back()->with('error', 'API merespons tetapi tidak ditemukan data siswa dalam format JSON yang didukung.');
+                return redirect()->route('admin.settings.edit', ['tab' => 'api'])->with('error', 'API merespons tetapi tidak ditemukan data siswa dalam format JSON yang didukung.');
             }
 
             $insertedCount = 0;
@@ -146,9 +142,9 @@ class ApiIntegrationController extends Controller
                 'last_sync_count' => $insertedCount + $updatedCount,
             ]);
 
-            return back()->with('success', "Sinkronisasi berhasil! {$insertedCount} pemilih baru ditambahkan, {$updatedCount} data pemilih diperbarui.");
+            return redirect()->route('admin.settings.edit', ['tab' => 'api'])->with('success', "Sinkronisasi berhasil! {$insertedCount} pemilih baru ditambahkan, {$updatedCount} data pemilih diperbarui.");
         } catch (Exception $e) {
-            return back()->with('error', 'Terjadi kesalahan saat menarik data: '.$e->getMessage());
+            return redirect()->route('admin.settings.edit', ['tab' => 'api'])->with('error', 'Terjadi kesalahan saat menarik data: '.$e->getMessage());
         }
     }
 
@@ -162,7 +158,7 @@ class ApiIntegrationController extends Controller
             'pilketos_api_key' => bin2hex(random_bytes(16)),
         ]);
 
-        return back()->with('success', 'API Key internal Pilketos berhasil diperbarui.');
+        return redirect()->route('admin.settings.edit', ['tab' => 'api'])->with('success', 'API Key internal Pilketos berhasil diperbarui.');
     }
 
     /**

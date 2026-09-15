@@ -42,9 +42,12 @@ class ApiIntegrationTest extends TestCase
     public function test_admin_can_view_api_integration_page(): void
     {
         $response = $this->actingAs($this->admin)->get(route('admin.api-integration.index'));
-        $response->assertStatus(200);
-        $response->assertSee('Integrasi API Database Sekolah');
-        $response->assertSee('secret_test_key_12345');
+        $response->assertRedirect(route('admin.settings.edit', ['tab' => 'api']));
+
+        $followResponse = $this->actingAs($this->admin)->get(route('admin.settings.edit', ['tab' => 'api']));
+        $followResponse->assertStatus(200);
+        $followResponse->assertSee('Integrasi API Database Sekolah');
+        $followResponse->assertSee('secret_test_key_12345');
     }
 
     public function test_admin_can_update_school_api_settings(): void

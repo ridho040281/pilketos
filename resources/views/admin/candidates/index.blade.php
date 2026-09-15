@@ -16,8 +16,17 @@
         </a>
     </div>
 
-    <!-- Candidates Cards List -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Candidates Cards List (Dynamic grid: 4 sejajar pada layar besar) -->
+    @php
+        $adminCandCount = count($candidates);
+        $adminGridClass = match(true) {
+            $adminCandCount === 1 => 'max-w-md grid-cols-1',
+            $adminCandCount === 2 => 'max-w-3xl grid-cols-1 sm:grid-cols-2',
+            $adminCandCount === 3 => 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+            default => 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
+        };
+    @endphp
+    <div class="grid {{ $adminGridClass }} gap-5">
         @forelse ($candidates as $c)
             <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
                 <div>

@@ -45,42 +45,51 @@
     </div>
 
     <!-- Instruction Title -->
-    <div class="max-w-6xl w-full mx-auto text-center mb-8">
+    <div class="max-w-7xl w-full mx-auto text-center mb-6">
         <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">SURAT SUARA DIGITAL</h1>
         <p class="text-sm text-slate-600 mt-1 max-w-xl mx-auto">
-            Gunakan hak pilih Anda dengan bijak. Klik tombol <strong>Coblos Paslon</strong> pada pasangan calon pilihan Anda.
+            Gunakan hak pilih Anda dengan bijak. Klik tombol <strong>Coblos</strong> pada calon pilihan Anda.
         </p>
     </div>
 
-    <!-- Candidates Grid -->
-    <div class="max-w-6xl w-full mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 pb-12">
+    <!-- Candidates Grid (Responsive: 4 sejajar pada layar desktop) -->
+    @php
+        $candidateCount = count($candidates);
+        $gridConfig = match(true) {
+            $candidateCount === 1 => 'max-w-md grid-cols-1',
+            $candidateCount === 2 => 'max-w-3xl grid-cols-1 sm:grid-cols-2',
+            $candidateCount === 3 => 'max-w-6xl grid-cols-1 sm:grid-cols-2 lg:grid-cols-3',
+            default => 'max-w-7xl grid-cols-1 sm:grid-cols-2 lg:grid-cols-4',
+        };
+    @endphp
+    <div class="w-full mx-auto grid {{ $gridConfig }} gap-4 sm:gap-5 pb-12">
         @foreach ($candidates as $candidate)
             <div class="bg-white rounded-3xl shadow-md shadow-slate-200/60 border-2 border-slate-200 hover:border-indigo-400 hover:shadow-xl transition-all duration-200 flex flex-col overflow-hidden relative group">
                 <!-- Top Number Badge -->
-                <div class="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Nomor Urut</span>
-                    <span class="w-10 h-10 rounded-2xl bg-indigo-600 text-white font-black text-xl flex items-center justify-center shadow-md shadow-indigo-600/30">
+                <div class="p-3.5 sm:p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Nomor Urut</span>
+                    <span class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl bg-indigo-600 text-white font-black text-lg sm:text-xl flex items-center justify-center shadow-md shadow-indigo-600/30">
                         {{ sprintf('%02d', $candidate->candidate_number) }}
                     </span>
                 </div>
 
                 <!-- Photo Container -->
-                <div class="relative bg-slate-100 h-64 sm:h-72 overflow-hidden flex items-center justify-center">
+                <div class="relative bg-slate-100 h-52 sm:h-56 overflow-hidden flex items-center justify-center">
                     @if ($candidate->photo_path)
                         <img src="{{ asset('storage/' . $candidate->photo_path) }}" alt="{{ $candidate->leader_name }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                     @else
                         <!-- Modern Avatar Silhouette Placeholder -->
-                        <div class="flex flex-col items-center justify-center text-slate-400 p-6 text-center">
-                            <div class="w-24 h-24 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold text-3xl mb-2">
+                        <div class="flex flex-col items-center justify-center text-slate-400 p-4 text-center">
+                            <div class="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 font-bold text-2xl mb-1.5">
                                 {{ sprintf('%02d', $candidate->candidate_number) }}
                             </div>
-                            <span class="text-xs font-medium text-slate-400">Foto Paslon</span>
+                            <span class="text-[11px] font-medium text-slate-400">Foto Calon</span>
                         </div>
                     @endif
                 </div>
 
                 <!-- Candidate Info -->
-                <div class="p-6 flex-1 flex flex-col justify-between">
+                <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
                     <div class="space-y-3 mb-6">
                         <div>
                             <span class="text-[10px] font-bold uppercase tracking-widest text-indigo-600">Calon Ketua</span>

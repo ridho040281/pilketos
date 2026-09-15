@@ -3,8 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'E-Voting OSIS') - {{ config('app.name', 'Pilketos') }}</title>
-    <link rel="icon" href="{{ \App\Models\ElectionSetting::current()->getFaviconUrl() }}">
+    @php
+        $siteSetting = \App\Models\ElectionSetting::current();
+        $pageTitle = trim($__env->yieldContent('title', 'Bilik Suara Siswa - ' . ($siteSetting->school_name ?? 'Pilketos')));
+    @endphp
+    <title>{{ $pageTitle }}</title>
+    <meta name="description" content="Portal E-Voting Pilketos {{ $siteSetting->school_name ?? '' }} - {{ $siteSetting->election_title ?? 'Pemilihan Ketua OSIS' }}">
+    <meta property="og:title" content="{{ $pageTitle }}">
+    <meta property="og:description" content="Portal E-Voting Pilketos {{ $siteSetting->school_name ?? '' }} - {{ $siteSetting->election_title ?? 'Pemilihan Ketua OSIS' }}">
+    @if(!empty($siteSetting->school_logo))
+        <meta property="og:image" content="{{ asset('storage/' . $siteSetting->school_logo) }}">
+    @endif
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <link rel="icon" href="{{ $siteSetting->getFaviconUrl() }}">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">

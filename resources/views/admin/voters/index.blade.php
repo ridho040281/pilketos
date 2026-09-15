@@ -4,10 +4,56 @@
 @section('header_title', 'Manajemen DPT & Kartu Pemilih')
 
 @section('content')
-<div class="space-y-6" x-data="{ showImportModal: false }">
+<div class="space-y-6" x-data="{
+    showImportModal: false,
+    isSearching: false,
+    searchQuery: '{{ addslashes(request('search', '')) }}',
+    filterCategory: '{{ addslashes(request('category', '')) }}',
+    filterClass: '{{ addslashes(request('class', '')) }}',
+    filterStatus: '{{ addslashes(request('status', '')) }}',
+    fetchVoters() {
+        this.isSearching = true;
+        const params = new URLSearchParams();
+        if (this.searchQuery) params.set('search', this.searchQuery);
+        if (this.filterCategory) params.set('category', this.filterCategory);
+        if (this.filterClass) params.set('class', this.filterClass);
+        if (this.filterStatus) params.set('status', this.filterStatus);
+        
+        const url = '{{ route('admin.voters.index') }}' + (params.toString() ? '?' + params.toString() : '');
+
+        fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.text())
+        .then(html => {
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const newTable = doc.getElementById('voters-table-container');
+            const newStats = doc.getElementById('voters-stats-container');
+            
+            if (newTable) {
+                document.getElementById('voters-table-container').innerHTML = newTable.innerHTML;
+            }
+            if (newStats) {
+                document.getElementById('voters-stats-container').innerHTML = newStats.innerHTML;
+            }
+            window.history.replaceState({}, '', url);
+        })
+        .catch(err => console.error('Search error:', err))
+        .finally(() => {
+            this.isSearching = false;
+        });
+    },
+    resetFilters() {
+        this.searchQuery = '';
+        this.filterCategory = '';
+        this.filterClass = '';
+        this.filterStatus = '';
+        this.fetchVoters();
+    }
+}">
     <!-- Top Action Bar -->
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
+        <div id="voters-stats-container">
             <h2 class="text-base font-bold text-slate-900">Daftar Pemilih Tetap ({{ number_format($totalCount, 0, ',', '.') }} DPT)</h2>
             <div class="flex flex-wrap items-center gap-2 text-xs mt-1">
                 <span class="px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 font-bold border border-indigo-100">🎓 Siswa: {{ number_format($siswaCount, 0, ',', '.') }}</span>
@@ -48,54 +94,116 @@
 
     <!-- Filters & Search Bar -->
     <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
-        <form method="GET" action="{{ route('admin.voters.index') }}" class="flex flex-wrap items-center gap-3">
+        <form id="voters-filter-form" method="GET" action="{{ route('admin.voters.index') }}" @submit.prevent="fetchVoters()" class="flex flex-wrap items-center gap-3">
             <!-- Search -->
-            <div class="relative flex-1 min-w-[200px]">
+            <div class="relative flex-1 min-w-[220px]">
                 <input 
                     type="text" 
                     name="search" 
-                    value="{{ request('search') }}" 
-                    placeholder="Cari nama, NISN/NIP, token..." 
-                    class="w-full pl-9 pr-4 py-2 rounded-xl border border-slate-300 text-xs focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20"
+                    x-model="searchQuery"
+                    @input.debounce.300ms="fetchVoters()"
+                    autocomplete="off"
+                    spellcheck="false"
+                    placeholder="Ketik nama, NISN/NIP, token... (langsung cari)" 
+                    class="w-full pl-9 pr-8 py-2 rounded-xl border border-slate-300 text-xs focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20"
                 >
-                <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                <!-- Search Icon / Loading Spinner -->
+                <div class="absolute left-3 top-2.5 text-slate-400 pointer-events-none">
+                    <svg x-show="!isSearching" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <svg x-show="isSearching" class="w-4 h-4 animate-spin text-indigo-600" fill="none" viewBox="0 0 24 24" x-cloak>
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                </div>
+                <!-- Clear Button -->
+                <button 
+                    type="button" 
+                    x-show="searchQuery && searchQuery.length > 0" 
+                    @click="searchQuery = ''; fetchVoters()" 
+                    class="absolute right-2.5 top-2.5 text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer"
+                    title="Hapus pencarian"
+                    x-cloak
+                >
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
             </div>
 
             <!-- Category Filter -->
-            <select name="category" onchange="this.form.submit()" class="py-2 px-3 rounded-xl border border-slate-300 text-xs focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white font-semibold">
+            <select name="category" x-model="filterCategory" @change="fetchVoters()" class="py-2 px-3 rounded-xl border border-slate-300 text-xs focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white font-semibold cursor-pointer">
                 <option value="">Semua Kategori</option>
-                <option value="siswa" {{ request('category') == 'siswa' ? 'selected' : '' }}>🎓 Siswa</option>
-                <option value="guru" {{ request('category') == 'guru' ? 'selected' : '' }}>👨‍🏫 Guru</option>
-                <option value="tendik" {{ request('category') == 'tendik' ? 'selected' : '' }}>💼 Tendik</option>
+                <option value="siswa">🎓 Siswa</option>
+                <option value="guru">👨‍🏫 Guru</option>
+                <option value="tendik">💼 Tendik</option>
             </select>
 
             <!-- Class Filter -->
-            <select name="class" onchange="this.form.submit()" class="py-2 px-3 rounded-xl border border-slate-300 text-xs focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white">
+            <select name="class" x-model="filterClass" @change="fetchVoters()" class="py-2 px-3 rounded-xl border border-slate-300 text-xs focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white cursor-pointer">
                 <option value="">Semua Kelas/Unit</option>
                 @foreach ($classes as $c)
-                    <option value="{{ $c }}" {{ request('class') == $c ? 'selected' : '' }}>{{ $c }}</option>
+                    <option value="{{ $c }}">{{ $c }}</option>
                 @endforeach
             </select>
 
             <!-- Status Filter -->
-            <select name="status" onchange="this.form.submit()" class="py-2 px-3 rounded-xl border border-slate-300 text-xs focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white">
+            <select name="status" x-model="filterStatus" @change="fetchVoters()" class="py-2 px-3 rounded-xl border border-slate-300 text-xs focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white cursor-pointer">
                 <option value="">Semua Status</option>
-                <option value="voted" {{ request('status') == 'voted' ? 'selected' : '' }}>Sudah Memilih</option>
-                <option value="unvoted" {{ request('status') == 'unvoted' ? 'selected' : '' }}>Belum Memilih</option>
+                <option value="voted">Sudah Memilih</option>
+                <option value="unvoted">Belum Memilih</option>
             </select>
 
-            <button type="submit" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors shrink-0">
+            <button type="submit" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors shrink-0 cursor-pointer">
                 Terapkan
             </button>
 
-            @if(request()->hasAny(['search', 'category', 'class', 'status']))
-                <a href="{{ route('admin.voters.index') }}" class="text-xs text-rose-600 hover:underline shrink-0">Reset</a>
-            @endif
+            <button 
+                type="button" 
+                x-show="searchQuery !== '' || filterCategory !== '' || filterClass !== '' || filterStatus !== ''" 
+                @click="resetFilters()" 
+                class="text-xs text-rose-600 hover:underline shrink-0 cursor-pointer font-semibold"
+                x-cloak>
+                Reset Filter
+            </button>
         </form>
     </div>
 
-    <!-- Table -->
-    <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+    <!-- Table Container with Live Refresh Support -->
+    <div id="voters-table-container" 
+         class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden relative"
+         @click="
+             const a = $event.target.closest('a');
+             if (a && a.href && a.closest('nav')) {
+                 $event.preventDefault();
+                 isSearching = true;
+                 fetch(a.href, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                     .then(res => res.text())
+                     .then(html => {
+                         const doc = new DOMParser().parseFromString(html, 'text/html');
+                         const newTable = doc.getElementById('voters-table-container');
+                         if (newTable) {
+                             $el.innerHTML = newTable.innerHTML;
+                         }
+                         window.history.pushState({}, '', a.href);
+                     })
+                     .catch(err => console.error('Pagination error:', err))
+                     .finally(() => { isSearching = false; });
+             }
+         ">
+        <!-- Loading Overlay Indicator -->
+        <div x-show="isSearching" 
+             class="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center z-10 transition-opacity" 
+             x-cloak>
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-2xl bg-slate-900/90 text-white text-xs font-bold shadow-xl">
+                <svg class="animate-spin h-4 w-4 text-indigo-400" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Mencari data...</span>
+            </div>
+        </div>
         <div class="overflow-x-auto">
             <table class="w-full text-left text-xs whitespace-nowrap">
                 <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200">

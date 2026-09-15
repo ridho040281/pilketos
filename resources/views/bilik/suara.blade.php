@@ -129,17 +129,17 @@
                     @endif
                 </div>
 
-                <!-- Candidate Info -->
-                <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
-                    <div class="space-y-3 mb-6">
+                <!-- Candidate Info (Centered Alignment) -->
+                <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between text-center">
+                    <div class="space-y-3 mb-6 text-center">
                         <div>
-                            <span class="text-[10px] font-bold uppercase tracking-widest" style="color: {{ $cardColor }};">Calon Ketua</span>
-                            <h3 class="text-lg font-bold text-slate-900 leading-tight">{{ $candidate->leader_name }}</h3>
+                            <span class="text-[10px] font-bold uppercase tracking-widest block" style="color: {{ $cardColor }};">Calon Ketua</span>
+                            <h3 class="text-base sm:text-lg font-bold text-slate-900 leading-tight mt-1">{{ $candidate->leader_name }}</h3>
                         </div>
                         @if(!empty($candidate->co_leader_name))
                             <div>
-                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Calon Wakil Ketua</span>
-                                <h4 class="text-base font-semibold text-slate-700 leading-tight">{{ $candidate->co_leader_name }}</h4>
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400 block">Calon Wakil Ketua</span>
+                                <h4 class="text-sm sm:text-base font-semibold text-slate-700 leading-tight mt-0.5">{{ $candidate->co_leader_name }}</h4>
                             </div>
                         @endif
                     </div>

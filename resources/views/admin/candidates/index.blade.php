@@ -55,16 +55,16 @@
                         @endif
                     </div>
 
-                    <!-- Details -->
-                    <div class="p-5 space-y-3">
+                    <!-- Details (Centered) -->
+                    <div class="p-5 space-y-3 text-center">
                         <div>
-                            <span class="text-[10px] font-bold uppercase tracking-widest" style="color: {{ $c->card_color }};">Calon Ketua</span>
-                            <h4 class="text-base font-bold text-slate-900">{{ $c->leader_name }}</h4>
+                            <span class="text-[10px] font-bold uppercase tracking-widest block" style="color: {{ $c->card_color }};">Calon Ketua</span>
+                            <h4 class="text-base font-bold text-slate-900 mt-1">{{ $c->leader_name }}</h4>
                         </div>
                         @if(!empty($c->co_leader_name))
                             <div>
-                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">Calon Wakil Ketua</span>
-                                <h5 class="text-sm font-semibold text-slate-700">{{ $c->co_leader_name }}</h5>
+                                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400 block">Calon Wakil Ketua</span>
+                                <h5 class="text-sm font-semibold text-slate-700 mt-0.5">{{ $c->co_leader_name }}</h5>
                             </div>
                         @else
                             <div class="pt-1">

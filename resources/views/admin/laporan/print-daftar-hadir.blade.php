@@ -131,9 +131,9 @@
 
             <div class="grid grid-cols-3 gap-6 text-center items-start">
                 <div>
-                    <span class="block text-slate-700 font-medium mb-16">Petugas Presensi (KPPS),</span>
+                    <span class="block text-slate-700 font-medium mb-16">Pembina OSIS,</span>
                     <span class="block font-bold underline">( .................................................... )</span>
-                    <span class="block text-[11px] text-slate-500 mt-1">NIS. .....................................</span>
+                    <span class="block text-[11px] text-slate-500 mt-1">NIP. .....................................</span>
                 </div>
 
                 <div>
@@ -143,9 +143,9 @@
                 </div>
 
                 <div>
-                    <span class="block text-slate-700 font-medium mb-16">Pembina OSIS,</span>
+                    <span class="block text-slate-700 font-medium mb-16">Petugas Presensi (KPPS),</span>
                     <span class="block font-bold underline">( .................................................... )</span>
-                    <span class="block text-[11px] text-slate-500 mt-1">NIP. .....................................</span>
+                    <span class="block text-[11px] text-slate-500 mt-1">NIS. .....................................</span>
                 </div>
             </div>
         </div>

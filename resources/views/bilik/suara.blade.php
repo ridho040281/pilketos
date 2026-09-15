@@ -211,7 +211,7 @@
                             </template>
                             <template x-if="!activeVision.photo">
                                 <div class="text-center p-2 text-slate-400 font-bold">
-                                    <span class="text-xs block">Paslon</span>
+                                    <span class="text-xs block" x-text="activeVision.coLeader ? 'Paslon' : 'Calon'"></span>
                                     <span class="text-base sm:text-xl font-black text-slate-700" x-text="activeVision.number"></span>
                                 </div>
                             </template>
@@ -221,7 +221,7 @@
                             <div class="flex items-center gap-2 mb-1">
                                 <span class="px-2.5 py-0.5 rounded-lg text-white font-black text-xs sm:text-sm flex items-center justify-center shadow-sm shrink-0" 
                                       :style="'background-color: ' + (activeVision.color || '#4f46e5') + '; box-shadow: 0 2px 8px ' + (activeVision.color || '#4f46e5') + '40;'"
-                                      x-text="'PASLON ' + activeVision.number"></span>
+                                      x-text="(activeVision.coLeader ? 'PASLON ' : 'CALON ') + activeVision.number"></span>
                                 <span class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-slate-400 truncate"
                                       x-text="activeVision.coLeader ? 'Pasangan Calon Ketua & Wakil' : 'Calon Ketua OSIS'"></span>
                             </div>

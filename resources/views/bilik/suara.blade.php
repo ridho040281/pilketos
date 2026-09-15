@@ -2,22 +2,44 @@
 
 @section('title', 'Surat Suara Digital - ' . ($setting->school_name ?? 'Pilketos'))
 
+@php
+    $candidatesJson = $candidates->mapWithKeys(function ($candidate) {
+        return [
+            $candidate->id => [
+                'id' => $candidate->id,
+                'number' => sprintf('%02d', $candidate->candidate_number),
+                'leader' => $candidate->leader_name,
+                'coLeader' => $candidate->co_leader_name ?? '',
+                'vision' => $candidate->vision ?: 'Tidak ada keterangan visi.',
+                'mission' => $candidate->mission ?: 'Tidak ada keterangan misi.',
+            ],
+        ];
+    });
+@endphp
+
 @section('content')
-<div class="min-h-screen flex flex-col bg-slate-100 py-6 px-4 sm:px-6 lg:px-8" x-data="{
-    showConfirmModal: false,
-    showVisionModal: false,
-    selectedCandidate: null,
-    activeVision: { number: '', leader: '', coLeader: '', vision: '', mission: '' },
-    isSubmitting: false,
-    openVision(number, leader, coLeader, vision, mission) {
-        this.activeVision = { number, leader, coLeader, vision, mission };
-        this.showVisionModal = true;
-    },
-    confirmVote(candidate) {
-        this.selectedCandidate = candidate;
-        this.showConfirmModal = true;
-    }
-}">
+<div class="min-h-screen flex flex-col bg-slate-100 py-6 px-4 sm:px-6 lg:px-8" 
+     x-data="{
+         candidatesData: @js($candidatesJson),
+         showConfirmModal: false,
+         showVisionModal: false,
+         selectedCandidate: null,
+         activeVision: { number: '', leader: '', coLeader: '', vision: '', mission: '' },
+         isSubmitting: false,
+         openVision(id) {
+             const c = this.candidatesData[id];
+             if (!c) return;
+             this.activeVision = c;
+             this.showVisionModal = true;
+         },
+         confirmVote(id) {
+             const c = this.candidatesData[id];
+             if (!c) return;
+             this.selectedCandidate = c;
+             this.showConfirmModal = true;
+         }
+     }"
+     @keydown.escape.window="showVisionModal = false; if(!isSubmitting) showConfirmModal = false">
     <!-- Top Nav Header -->
     <div class="max-w-6xl w-full mx-auto mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 bg-white px-6 py-4 rounded-3xl shadow-sm border border-slate-200">
         <div class="flex items-center space-x-3 text-center sm:text-left">
@@ -107,14 +129,8 @@
                         <!-- Button Visi Misi Modal -->
                         <button 
                             type="button" 
-                            @click="openVision(
-                                '{{ sprintf('%02d', $candidate->candidate_number) }}',
-                                '{{ addslashes($candidate->leader_name) }}',
-                                '{{ addslashes($candidate->co_leader_name ?? '') }}',
-                                '{{ addslashes($candidate->vision) }}',
-                                '{{ addslashes($candidate->mission) }}'
-                            )"
-                            class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors flex items-center justify-center gap-1.5"
+                            @click="openVision({{ $candidate->id }})"
+                            class="w-full py-2.5 px-4 rounded-xl text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 active:scale-[0.98] transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                             <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             Lihat Visi & Misi
@@ -123,13 +139,8 @@
                         <!-- Button Coblos -->
                         <button 
                             type="button" 
-                            @click="confirmVote({
-                                id: {{ $candidate->id }},
-                                number: '{{ sprintf('%02d', $candidate->candidate_number) }}',
-                                leader: '{{ addslashes($candidate->leader_name) }}',
-                                coLeader: '{{ addslashes($candidate->co_leader_name ?? '') }}'
-                            })"
-                            class="w-full py-3.5 px-4 rounded-2xl text-sm font-extrabold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2"
+                            @click="confirmVote({{ $candidate->id }})"
+                            class="w-full py-3.5 px-4 rounded-2xl text-sm font-extrabold text-white bg-indigo-600 hover:bg-indigo-700 active:scale-[0.98] shadow-lg shadow-indigo-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
                         >
                             <svg class="w-5 h-5 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                             COBLOS {{ !empty($candidate->co_leader_name) ? 'PASLON' : 'CALON' }} {{ sprintf('%02d', $candidate->candidate_number) }}
@@ -141,38 +152,81 @@
     </div>
 
     <!-- Modal Visi & Misi -->
-    <div x-show="showVisionModal" class="fixed inset-0 z-50 overflow-y-auto" x-cloak>
-        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" @click="showVisionModal = false"></div>
+    <div x-show="showVisionModal" 
+         class="fixed inset-0 z-50 overflow-y-auto" 
+         x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        
+        <!-- Backdrop Blur (Klik untuk auto close) -->
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity cursor-pointer" 
+             @click="showVisionModal = false"></div>
 
-        <div class="min-h-full flex items-center justify-center p-4">
-            <div class="relative bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 text-left" @click.stop>
-                <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+        <!-- Wrapper Dialog (Klik area luar kartu untuk auto close) -->
+        <div class="min-h-full flex items-center justify-center p-4 cursor-pointer" 
+             @click="showVisionModal = false">
+            
+            <!-- Kartu Modal (click.stop agar klik isi modal tidak menutup) -->
+            <div class="relative bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 text-left z-10 cursor-default" 
+                 @click.stop
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:scale-95">
+                
+                <!-- Modal Header dengan Tombol Silang (X) -->
+                <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-5">
                     <div class="flex items-center space-x-3">
-                        <span class="w-9 h-9 rounded-xl bg-indigo-600 text-white font-black text-base flex items-center justify-center" x-text="activeVision.number"></span>
+                        <span class="w-10 h-10 rounded-2xl bg-indigo-600 text-white font-black text-lg flex items-center justify-center shadow-md shadow-indigo-600/30 shrink-0" 
+                              x-text="activeVision.number"></span>
                         <div>
-                            <h3 class="text-base font-bold text-slate-800" x-text="activeVision.leader"></h3>
-                            <p class="text-xs text-slate-500" x-show="activeVision.coLeader" x-text="'& ' + activeVision.coLeader"></p>
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-indigo-600">Visi & Misi Kandidat</span>
+                            <h3 class="text-base sm:text-lg font-bold text-slate-800 leading-tight" x-text="activeVision.leader"></h3>
+                            <p class="text-xs text-slate-500 font-medium" x-show="activeVision.coLeader" x-text="'& ' + activeVision.coLeader"></p>
                         </div>
                     </div>
-                    <button @click="showVisionModal = false" class="text-slate-400 hover:text-slate-600 p-1">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    
+                    <!-- Tombol Silang (X) -->
+                    <button type="button" 
+                            @click="showVisionModal = false" 
+                            class="text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-2 rounded-2xl transition-colors cursor-pointer" 
+                            title="Tutup (Esc)">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
                     </button>
                 </div>
 
-                <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                <!-- Konten Visi & Misi dengan Scroll -->
+                <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
                     <div>
-                        <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-600 mb-1.5">Visi:</h4>
-                        <p class="text-sm text-slate-700 bg-indigo-50/60 p-3.5 rounded-2xl leading-relaxed whitespace-pre-line" x-text="activeVision.vision"></p>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-600 mb-1.5 flex items-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                            Visi
+                        </h4>
+                        <div class="text-sm text-slate-700 bg-indigo-50/60 border border-indigo-100/60 p-4 rounded-2xl leading-relaxed whitespace-pre-line" x-text="activeVision.vision"></div>
                     </div>
 
                     <div>
-                        <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-600 mb-1.5">Misi:</h4>
-                        <p class="text-sm text-slate-700 bg-slate-50 p-3.5 rounded-2xl leading-relaxed whitespace-pre-line" x-text="activeVision.mission"></p>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-indigo-600 mb-1.5 flex items-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                            Misi
+                        </h4>
+                        <div class="text-sm text-slate-700 bg-slate-50 border border-slate-200/60 p-4 rounded-2xl leading-relaxed whitespace-pre-line" x-text="activeVision.mission"></div>
                     </div>
                 </div>
 
-                <div class="mt-6 pt-4 border-t border-slate-100 text-right">
-                    <button @click="showVisionModal = false" class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors">
+                <!-- Footer Tombol Tutup -->
+                <div class="mt-6 pt-4 border-t border-slate-100 flex justify-end">
+                    <button type="button" 
+                            @click="showVisionModal = false" 
+                            class="px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer">
                         Tutup
                     </button>
                 </div>
@@ -181,11 +235,44 @@
     </div>
 
     <!-- Modal Konfirmasi Coblos -->
-    <div x-show="showConfirmModal" class="fixed inset-0 z-50 overflow-y-auto" x-cloak>
-        <div class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm transition-opacity"></div>
+    <div x-show="showConfirmModal" 
+         class="fixed inset-0 z-50 overflow-y-auto" 
+         x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0">
+        
+        <!-- Backdrop Blur (Klik untuk auto close jika tidak sedang submit) -->
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity cursor-pointer" 
+             @click="if (!isSubmitting) showConfirmModal = false"></div>
 
-        <div class="min-h-full flex items-center justify-center p-4">
-            <div class="relative bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-200 text-center" @click.stop>
+        <!-- Wrapper Dialog (Klik area luar kartu untuk auto close) -->
+        <div class="min-h-full flex items-center justify-center p-4 cursor-pointer" 
+             @click="if (!isSubmitting) showConfirmModal = false">
+            
+            <div class="relative bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-200 text-center z-10 cursor-default" 
+                 @click.stop
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:scale-95">
+                
+                <!-- Tombol Silang (X) untuk Konfirmasi Modal -->
+                <button type="button" 
+                        :disabled="isSubmitting"
+                        @click="showConfirmModal = false" 
+                        class="absolute top-5 right-5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-2 rounded-2xl transition-colors cursor-pointer" 
+                        title="Tutup (Esc)">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+
                 <div class="w-16 h-16 mx-auto mb-4 rounded-3xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                 </div>
@@ -217,7 +304,7 @@
                             type="button" 
                             :disabled="isSubmitting"
                             @click="showConfirmModal = false" 
-                            class="py-3 px-4 rounded-xl border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-100 transition-colors"
+                            class="py-3 px-4 rounded-xl border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-100 transition-colors cursor-pointer"
                         >
                             Kembali Periksa
                         </button>
@@ -225,7 +312,7 @@
                         <button 
                             type="submit" 
                             :disabled="isSubmitting"
-                            class="py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-xs font-extrabold shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-1.5"
+                            class="py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white text-xs font-extrabold shadow-lg shadow-emerald-600/30 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
                         >
                             <span x-show="!isSubmitting">Ya, Kirim Suara</span>
                             <span x-show="isSubmitting" class="flex items-center gap-1" x-cloak>

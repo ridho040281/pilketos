@@ -508,4 +508,26 @@ class VotingFlowTest extends TestCase
         $indexView->assertSee('Ketua Tunggal');
         $indexView->assertSee('Calon Tunggal (Hanya Ketua)');
     }
+
+    public function test_bilik_suara_renders_vision_modal_and_backdrop_blur(): void
+    {
+        $voter = Voter::create([
+            'name' => 'Siswa Modal Test',
+            'class' => 'XII-IPA-1',
+            'passcode' => 'MODAL01',
+            'has_voted' => false,
+        ]);
+
+        $response = $this->withSession([
+            'voter_id' => $voter->id,
+            'voter_name' => $voter->name,
+            'voter_class' => $voter->class,
+        ])->get(route('bilik.suara'));
+
+        $response->assertStatus(200);
+        $response->assertSee('showVisionModal');
+        $response->assertSee('backdrop-blur-md');
+        $response->assertSee('Lihat Visi');
+        $response->assertSee('COBLOS');
+    }
 }

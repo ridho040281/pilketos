@@ -85,6 +85,7 @@ class ElectionSetting extends Model
                 'is_active' => true,
                 'show_quick_count' => false,
                 'pilketos_api_key' => bin2hex(random_bytes(16)),
+                'guru_api_url' => 'https://jadwal.mtsn1blitar.sch.id/api/v1/sync/guru',
                 'guru_api_client_id' => 'client_edp3yftse3bxcrcf',
                 'guru_api_secret' => 'EgUmiD5xGq1v6IdUMlTvxGModoUOoCjCIKncKu2I',
                 'guru_api_token' => 'UOcvFMOE4fPisQxFDh1W7Q77wx6glE9P87wkcOswAd6RtxVLFvSmV3rrbXGW',

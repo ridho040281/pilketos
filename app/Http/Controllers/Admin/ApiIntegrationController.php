@@ -180,25 +180,24 @@ class ApiIntegrationController extends Controller
         }
 
         try {
+            $timestamp = time();
+            $clientId = (string) ($setting->guru_api_client_id ?? '');
+            $clientSecret = (string) ($setting->guru_api_secret ?? '');
+            $apiToken = (string) ($setting->guru_api_token ?? '');
+            $payload = ''; // Kosong untuk GET request
+
+            // Formula Signature HMAC SHA-256 (sesuai spesifikasi e-Jadwal MTsN 1 Blitar)
+            $rawString = $timestamp.$clientId.$payload;
+            $signature = ! empty($clientSecret) ? hash_hmac('sha256', $rawString, $clientSecret) : '';
+
             $headers = [
                 'Accept' => 'application/json',
                 'User-Agent' => 'Pilketos-API-Client/1.0',
+                'Authorization' => 'Bearer '.$apiToken,
+                'X-Client-ID' => $clientId,
+                'X-Timestamp' => (string) $timestamp,
+                'X-Signature' => $signature,
             ];
-
-            if (! empty($setting->guru_api_token)) {
-                $headers['Authorization'] = 'Bearer '.$setting->guru_api_token;
-                $headers['X-API-TOKEN'] = $setting->guru_api_token;
-            }
-
-            if (! empty($setting->guru_api_client_id)) {
-                $headers['X-CLIENT-ID'] = $setting->guru_api_client_id;
-                $headers['Client-Id'] = $setting->guru_api_client_id;
-            }
-
-            if (! empty($setting->guru_api_secret)) {
-                $headers['X-CLIENT-SECRET'] = $setting->guru_api_secret;
-                $headers['Client-Secret'] = $setting->guru_api_secret;
-            }
 
             $url = $setting->guru_api_url;
 
@@ -387,10 +386,14 @@ class ApiIntegrationController extends Controller
                 continue;
             }
 
+            if (isset($item['aktif']) && $item['aktif'] === false) {
+                continue;
+            }
+
             $nip = $item['nip'] ?? $item['nuptk'] ?? $item['nik'] ?? $item['id'] ?? $item['kode_guru'] ?? $item['nisn'] ?? null;
-            $name = $item['nama'] ?? $item['name'] ?? $item['nama_lengkap'] ?? $item['nama_guru'] ?? $item['nama_pegawai'] ?? null;
+            $name = $item['nama'] ?? $item['name'] ?? $item['nama_lengkap'] ?? (isset($item['user_account']['name']) ? $item['user_account']['name'] : null) ?? $item['nama_guru'] ?? null;
             $class = $item['mapel'] ?? $item['mata_pelajaran'] ?? $item['jabatan'] ?? $item['tugas'] ?? $item['unit'] ?? $item['kelas'] ?? $item['class'] ?? 'Guru';
-            $gender = $item['jk'] ?? $item['jenis_kelamin'] ?? $item['gender'] ?? $item['sex'] ?? null;
+            $gender = $item['jenis_kelamin'] ?? $item['jk'] ?? $item['gender'] ?? $item['sex'] ?? null;
 
             if ($gender) {
                 $gender = strtoupper(substr(trim((string) $gender), 0, 1));

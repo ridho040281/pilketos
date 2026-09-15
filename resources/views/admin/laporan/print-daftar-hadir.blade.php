@@ -18,6 +18,7 @@
             body { background: white !important; padding: 0 !important; color: black !important; }
             .print-page { box-shadow: none !important; border: none !important; padding: 0 !important; margin: 0 !important; max-width: 100% !important; }
             tr { page-break-inside: avoid; }
+            .signature-section { page-break-inside: avoid; }
         }
     </style>
 </head>
@@ -119,26 +120,32 @@
         </div>
 
         <!-- Tanda Tangan Panitia -->
-        <div class="pt-6 border-t border-slate-200 text-xs">
-            <p class="text-right mb-6">Ditetapkan di: Lingkungan Sekolah<br>Pada tanggal: {{ now()->translatedFormat('d F Y') }}</p>
+        <div class="pt-6 border-t border-slate-200 text-xs signature-section">
+            <div class="grid grid-cols-3 gap-6 mb-3">
+                <div></div>
+                <div></div>
+                <div class="text-center font-medium">
+                    Blitar, {{ now()->translatedFormat('d F Y') }}
+                </div>
+            </div>
 
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-6 text-center">
+            <div class="grid grid-cols-3 gap-6 text-center items-start">
                 <div>
-                    <span class="block text-slate-500 mb-16">Petugas Presensi (KPPS),</span>
+                    <span class="block text-slate-700 font-medium mb-16">Petugas Presensi (KPPS),</span>
                     <span class="block font-bold underline">( .................................................... )</span>
-                    <span class="block text-[10px] text-slate-400">NIS. .....................................</span>
+                    <span class="block text-[11px] text-slate-500 mt-1">NIS. .....................................</span>
                 </div>
 
                 <div>
-                    <span class="block text-slate-500 mb-16">Ketua Panitia (MPK),</span>
+                    <span class="block text-slate-700 font-medium mb-16">Ketua Panitia (MPK),</span>
                     <span class="block font-bold underline">( .................................................... )</span>
-                    <span class="block text-[10px] text-slate-400">NIS. .....................................</span>
+                    <span class="block text-[11px] text-slate-500 mt-1">NIS. .....................................</span>
                 </div>
 
-                <div class="col-span-2 sm:col-span-1">
-                    <span class="block text-slate-500 mb-16">Mengetahui,<br>Pembina OSIS</span>
+                <div>
+                    <span class="block text-slate-700 font-medium mb-16">Pembina OSIS,</span>
                     <span class="block font-bold underline">( .................................................... )</span>
-                    <span class="block text-[10px] text-slate-400">NIP. .....................................</span>
+                    <span class="block text-[11px] text-slate-500 mt-1">NIP. .....................................</span>
                 </div>
             </div>
         </div>

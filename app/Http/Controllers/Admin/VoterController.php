@@ -356,12 +356,18 @@ class VoterController extends Controller
      */
     public function resetVotes(Request $request): RedirectResponse
     {
-        $request->validate([
-            'confirm_password' => ['required', 'string'],
-        ]);
+        $password = $request->input('confirm_password', '');
+        $confirmation = strtoupper(trim((string) $request->input('confirmation', '')));
 
-        if (! auth()->validate(['username' => auth()->user()->username, 'password' => $request->confirm_password])) {
-            return back()->with('error', 'Konfirmasi password salah. Reset suara dibatalkan.');
+        $isValid = false;
+        if (! empty($password) && auth()->validate(['username' => auth()->user()->username, 'password' => $password])) {
+            $isValid = true;
+        } elseif ($confirmation === 'RESET') {
+            $isValid = true;
+        }
+
+        if (! $isValid) {
+            return back()->with('error', 'Konfirmasi keamanan salah. Masukkan password admin atau ketik RESET.');
         }
 
         DB::transaction(function (): void {
@@ -372,6 +378,6 @@ class VoterController extends Controller
             ]);
         });
 
-        return redirect()->route('admin.dashboard')->with('success', 'Seluruh kotak suara dan status hak pilih berhasil di-reset ke awal.');
+        return redirect()->route('admin.voters.index')->with('success', 'Seluruh kotak suara dan status hak pilih DPT berhasil di-reset ke awal.');
     }
 }

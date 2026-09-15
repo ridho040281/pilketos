@@ -4,7 +4,7 @@
 @section('header_title', 'Dashboard Ringkasan Pemilihan')
 
 @section('content')
-<div class="space-y-6" x-data="{ showResetModal: false }">
+<div class="space-y-6">
     <!-- Quick Control Bar -->
     <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col lg:flex-row items-center justify-between gap-4">
         <div class="flex flex-wrap items-center gap-3">
@@ -32,10 +32,6 @@
                 <svg class="w-4 h-4 mr-2 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path></svg>
                 Buka Layar Proyektor
             </a>
-
-            <button @click="showResetModal = true" type="button" class="inline-flex items-center px-3.5 py-2.5 rounded-2xl text-xs font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 transition-colors border border-rose-200">
-                Reset Suara
-            </button>
         </div>
     </div>
 
@@ -219,41 +215,6 @@
                     @endforelse
                 </tbody>
             </table>
-        </div>
-    </div>
-
-    <!-- Modal Reset Suara -->
-    <div x-show="showResetModal" class="fixed inset-0 z-50 overflow-y-auto" x-cloak>
-        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="showResetModal = false"></div>
-        <div class="min-h-full flex items-center justify-center p-4">
-            <div class="relative bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-200 text-left" @click.stop>
-                <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                </div>
-                <h3 class="text-lg font-bold text-slate-900">PERINGATAN: Reset Seluruh Suara</h3>
-                <p class="text-xs text-slate-500 mt-1 leading-relaxed">
-                    Tindakan ini akan <strong>menghapus seluruh surat suara di kotak suara</strong> dan mengembalikan status seluruh pemilih menjadi <strong>Belum Memilih</strong>. Tindakan ini tidak dapat dibatalkan!
-                </p>
-
-                <form action="{{ route('admin.voters.reset-votes') }}" method="POST" class="mt-4 space-y-4">
-                    @csrf
-                    <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                            Masukkan Password Anda untuk Konfirmasi
-                        </label>
-                        <input type="password" name="confirm_password" required placeholder="Password Admin" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:border-rose-500 focus:ring-2 focus:ring-rose-200">
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-3 pt-2">
-                        <button type="button" @click="showResetModal = false" class="py-2.5 px-4 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100">
-                            Batal
-                        </button>
-                        <button type="submit" class="py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md shadow-rose-600/30">
-                            Ya, Reset Suara
-                        </button>
-                    </div>
-                </form>
-            </div>
         </div>
     </div>
 </div>

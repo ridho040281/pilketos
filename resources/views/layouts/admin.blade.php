@@ -50,7 +50,7 @@
     </style>
     @stack('styles')
 </head>
-<body class="h-full antialiased font-sans text-slate-800" x-data="{ sidebarOpen: false }">
+<body class="h-full antialiased font-sans text-slate-800" x-data="{ sidebarOpen: false, showResetModal: {{ request('action') === 'reset' || request('reset') ? 'true' : 'false' }} }">
     <div class="min-h-full flex flex-col md:flex-row">
         <!-- Sidebar Backdrop for Mobile -->
         <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm md:hidden" x-cloak></div>
@@ -85,10 +85,16 @@
                     Pasangan Calon
                 </a>
 
-                <a href="{{ route('admin.voters.index') }}" class="flex items-center px-3.5 py-2.5 rounded-xl font-medium text-sm transition-colors {{ request()->routeIs('admin.voters.*') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                    DPT & Kartu Pemilih
-                </a>
+                <div>
+                    <a href="{{ route('admin.voters.index') }}" class="flex items-center px-3.5 py-2.5 rounded-xl font-medium text-sm transition-colors {{ request()->routeIs('admin.voters.*') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        DPT & Kartu Pemilih
+                    </a>
+                    <button type="button" @click="showResetModal = true" class="w-full flex items-center pl-11 pr-3.5 py-1.5 mt-0.5 rounded-xl text-xs font-medium text-rose-400 hover:text-rose-300 hover:bg-slate-800 transition-colors cursor-pointer text-left">
+                        <svg class="w-3.5 h-3.5 mr-2 text-rose-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        <span>Reset Suara</span>
+                    </button>
+                </div>
 
                 <a href="{{ route('proyektor.index') }}" target="_blank" class="flex items-center px-3.5 py-2.5 rounded-xl font-medium text-sm text-emerald-400 hover:bg-slate-800 hover:text-emerald-300 transition-colors">
                     <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
@@ -167,6 +173,45 @@
             <main class="flex-1 p-4 md:p-8">
                 @yield('content')
             </main>
+        </div>
+    </div>
+
+    <!-- Modal Reset Suara DPT Global -->
+    <div x-show="showResetModal" class="fixed inset-0 z-50 overflow-y-auto" x-cloak>
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="showResetModal = false"></div>
+        <div class="min-h-full flex items-center justify-center p-4">
+            <div class="relative bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-200 text-left" @click.stop>
+                <div class="w-14 h-14 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </div>
+                <h3 class="text-lg font-bold text-slate-900">PERINGATAN: Reset Seluruh Suara DPT</h3>
+                <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+                    Tindakan ini akan <strong>menghapus seluruh surat suara di kotak suara</strong> dan mengembalikan status seluruh pemilih (DPT) menjadi <strong>Belum Memilih</strong>. Tindakan ini tidak dapat dibatalkan!
+                </p>
+
+                <form action="{{ route('admin.voters.reset-votes') }}" method="POST" class="mt-4 space-y-4">
+                    @csrf
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                            Konfirmasi Keamanan
+                        </label>
+                        <input type="password" name="confirm_password" placeholder="Masukkan Password Admin Anda" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:border-rose-500 focus:ring-2 focus:ring-rose-200 mb-2">
+                        <div class="flex items-center space-x-2">
+                            <span class="text-[11px] text-slate-400 font-medium">Atau ketik kata:</span>
+                            <input type="text" name="confirmation" placeholder="RESET" class="uppercase px-2.5 py-1 text-xs rounded-lg border border-slate-300 font-mono tracking-wider focus:border-rose-500 focus:ring-1 focus:ring-rose-500">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 pt-2">
+                        <button type="button" @click="showResetModal = false" class="py-2.5 px-4 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100">
+                            Batal
+                        </button>
+                        <button type="submit" class="py-2.5 px-4 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md shadow-rose-600/30">
+                            Ya, Reset Suara
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 

@@ -7,6 +7,7 @@ use App\Models\Candidate;
 use App\Models\ElectionSetting;
 use App\Models\User;
 use App\Models\Voter;
+use App\Support\SimpleXLSXGen;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -529,5 +530,88 @@ class VotingFlowTest extends TestCase
         $response->assertSee('backdrop-blur-md');
         $response->assertSee('Lihat Visi');
         $response->assertSee('COBLOS');
+    }
+
+    public function test_admin_can_download_excel_template(): void
+    {
+        $admin = User::create([
+            'name' => 'Admin Excel',
+            'username' => 'adminexcel',
+            'email' => 'adminexcel@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.voters.template'));
+
+        $response->assertStatus(200);
+        $response->assertHeader('Content-Disposition', 'attachment; filename="template_dpt_pilketos.xlsx"');
+        $response->assertHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    }
+
+    public function test_admin_can_import_voters_from_excel_xlsx(): void
+    {
+        $admin = User::create([
+            'name' => 'Admin Excel Import',
+            'username' => 'adminexcelimport',
+            'email' => 'adminexcelimport@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
+
+        $data = [
+            ['Kategori', 'NISN', 'Nama Lengkap', 'Kelas/Unit', 'JK'],
+            ['siswa', '00112233', 'Doni Pratama', 'XI-MIPA-2', 'L'],
+            ['guru', '19800101', 'Bambang Supriyanto', 'Guru Fisika', 'L'],
+            ['tendik', '19850505', 'Ratna Sari', 'Administrasi', 'P'],
+        ];
+
+        $xlsxContent = (string) SimpleXLSXGen::fromArray($data);
+        $file = UploadedFile::fake()->createWithContent('dpt_test.xlsx', $xlsxContent);
+
+        $response = $this->actingAs($admin)->post(route('admin.voters.import'), [
+            'file' => $file,
+        ]);
+
+        $response->assertRedirect(route('admin.voters.index'));
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('voters', [
+            'nisn' => '00112233',
+            'name' => 'Doni Pratama',
+            'class' => 'XI-MIPA-2',
+            'gender' => 'L',
+            'category' => Voter::CATEGORY_SISWA,
+        ]);
+
+        $this->assertDatabaseHas('voters', [
+            'nisn' => '19800101',
+            'name' => 'Bambang Supriyanto',
+            'category' => Voter::CATEGORY_GURU,
+        ]);
+
+        $this->assertDatabaseHas('voters', [
+            'nisn' => '19850505',
+            'name' => 'Ratna Sari',
+            'category' => Voter::CATEGORY_TENDIK,
+        ]);
+    }
+
+    public function test_voters_index_view_shows_import_excel_and_no_template_button_outside(): void
+    {
+        $admin = User::create([
+            'name' => 'Admin View Test',
+            'username' => 'adminviewtest',
+            'email' => 'adminviewtest@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.voters.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Import Excel');
+        $response->assertDontSee('Template CSV');
+        $response->assertSee('Unduh Template Excel');
     }
 }

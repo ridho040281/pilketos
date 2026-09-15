@@ -20,16 +20,10 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2.5">
-            <!-- Button Download Template -->
-            <a href="{{ route('admin.voters.template') }}" class="inline-flex items-center px-3.5 py-2 rounded-xl bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold border border-slate-300 shadow-sm transition-colors">
-                <svg class="w-4 h-4 mr-1.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                Template CSV
-            </a>
-
-            <!-- Button Import CSV -->
-            <button @click="showImportModal = true" type="button" class="inline-flex items-center px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/30 transition-colors">
+            <!-- Button Import Excel -->
+            <button @click="showImportModal = true" type="button" class="inline-flex items-center px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/30 transition-colors cursor-pointer">
                 <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
-                Import Excel/CSV
+                Import Excel
             </button>
 
             <!-- Button Tarik API -->
@@ -195,39 +189,93 @@
         </div>
     </div>
 
-    <!-- Modal Import CSV -->
-    <div x-show="showImportModal" class="fixed inset-0 z-50 overflow-y-auto" x-cloak>
-        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" @click="showImportModal = false"></div>
-        <div class="min-h-full flex items-center justify-center p-4">
-            <div class="relative bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-200 text-left" @click.stop>
-                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+    <!-- Modal Import Excel -->
+    <div x-show="showImportModal" 
+         class="fixed inset-0 z-50 overflow-y-auto" 
+         x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         @keydown.escape.window="showImportModal = false">
+        
+        <!-- Backdrop Blur (Klik luar untuk auto close) -->
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity cursor-pointer" 
+             @click="showImportModal = false"></div>
+
+        <!-- Wrapper Dialog (Klik area luar kartu untuk auto close) -->
+        <div class="min-h-full flex items-center justify-center p-4 cursor-pointer" 
+             @click="showImportModal = false">
+            
+            <div class="relative bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 text-left cursor-default z-10" 
+                 @click.stop
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:scale-95"
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:scale-95">
+                
+                <!-- Tombol Silang (X) -->
+                <button type="button" 
+                        @click="showImportModal = false" 
+                        class="absolute top-5 right-5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 p-2 rounded-2xl transition-colors cursor-pointer" 
+                        title="Tutup (Esc)">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+
+                <div class="flex items-center space-x-3 mb-4">
+                    <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900">Import DPT Massal (Excel)</h3>
+                        <p class="text-xs text-slate-500">Siswa, Guru, & Tenaga Kependidikan</p>
+                    </div>
                 </div>
-                <h3 class="text-lg font-bold text-slate-900">Import DPT Massal (Siswa, Guru, Tendik)</h3>
-                <p class="text-xs text-slate-500 mt-1 leading-relaxed">
-                    Upload file CSV berisi daftar pemilih (Siswa, Guru, atau Tenaga Kependidikan). Sistem otomatis men-generate token unik untuk masing-masing pemilih.
+
+                <p class="text-xs text-slate-600 leading-relaxed">
+                    Upload file Excel (.xlsx / .xls) atau CSV berisi daftar pemilih. Sistem otomatis men-generate kode token unik (passcode) untuk masing-masing pemilih.
                 </p>
 
-                <div class="mt-4 p-3 bg-indigo-50 border border-indigo-100 rounded-xl text-xs text-indigo-700">
-                    Format 5 Kolom: <code>Kategori (siswa/guru/tendik), NISN/NIP, Nama Lengkap, Kelas/Unit, Jenis Kelamin (L/P)</code>.
-                    <br><span class="text-slate-500 text-[11px]">*Mendukung juga format siswa standar 4 kolom (NISN, Nama, Kelas, JK).</span>
-                    <a href="{{ route('admin.voters.template') }}" class="font-bold underline block mt-1">Unduh Template CSV</a>
+                <!-- Box Download Template di Dalam Modal -->
+                <div class="my-4 p-4 bg-emerald-50/80 border border-emerald-200 rounded-2xl">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <div class="text-xs font-bold text-emerald-900 flex items-center gap-1.5">
+                                <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
+                                Template Format Excel (.xlsx)
+                            </div>
+                            <p class="text-[11px] text-emerald-700 mt-1 leading-relaxed">
+                                Format 5 Kolom: <code>Kategori, NISN/NIP, Nama Lengkap, Kelas/Unit, L/P</code>.
+                            </p>
+                        </div>
+                        <a href="{{ route('admin.voters.template') }}" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shrink-0 transition-colors shadow-sm inline-flex items-center justify-center gap-1.5 cursor-pointer">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Unduh Template Excel
+                        </a>
+                    </div>
                 </div>
 
-                <form action="{{ route('admin.voters.import') }}" method="POST" enctype="multipart/form-data" class="mt-4 space-y-4">
+                <form action="{{ route('admin.voters.import') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
                     @csrf
                     <div>
-                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                            Pilih File CSV (.csv, .txt)
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                            Pilih File Excel (.xlsx, .xls) atau CSV
                         </label>
-                        <input type="file" name="file" accept=".csv,.txt" required class="block w-full text-xs text-slate-500 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100">
+                        <input type="file" name="file" accept=".xlsx,.xls,.csv,.txt" required class="block w-full text-xs text-slate-500 file:mr-3 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 cursor-pointer border border-slate-200 rounded-2xl p-1 bg-slate-50">
                     </div>
 
                     <div class="grid grid-cols-2 gap-3 pt-2">
-                        <button type="button" @click="showImportModal = false" class="py-2.5 px-4 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100">
+                        <button type="button" @click="showImportModal = false" class="py-2.5 px-4 rounded-xl border border-slate-300 text-xs font-bold text-slate-700 hover:bg-slate-100 transition-colors cursor-pointer">
                             Batal
                         </button>
-                        <button type="submit" class="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/30">
+                        <button type="submit" class="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md shadow-emerald-600/30 transition-colors cursor-pointer flex items-center justify-center gap-1.5">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
                             Mulai Import Data
                         </button>
                     </div>

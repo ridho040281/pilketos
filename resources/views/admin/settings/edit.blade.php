@@ -563,7 +563,7 @@ curl_close($ch);</pre>
 
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                        URL Endpoint API Guru <span class="text-rose-500">*</span>
+                        URL Endpoint API Guru
                     </label>
                     <div class="relative">
                         <input 
@@ -571,11 +571,10 @@ curl_close($ch);</pre>
                             name="guru_api_url" 
                             value="{{ old('guru_api_url', $setting->guru_api_url) }}" 
                             placeholder="https://contoh-api.sekolah.sch.id/api/guru"
-                            required
                             class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20"
                         >
                     </div>
-                    <p class="text-[11px] text-slate-400 mt-1">Masukkan URL API sekolah yang merespons daftar data guru (JSON).</p>
+                    <p class="text-[11px] text-slate-400 mt-1">Masukkan URL API sekolah yang merespons daftar data guru (JSON). Diperlukan saat menarik data.</p>
                     @error('guru_api_url') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
                 </div>
 

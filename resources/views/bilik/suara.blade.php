@@ -105,10 +105,9 @@
                 <!-- Top Color Strip -->
                 <div class="h-2 w-full" style="background-color: {{ $cardColor }};"></div>
 
-                <!-- Top Number Badge -->
-                <div class="p-3.5 sm:p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Nomor Urut</span>
-                    <span class="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl text-white font-black text-lg sm:text-xl flex items-center justify-center shadow-md"
+                <!-- Top Number Badge (Tengah) -->
+                <div class="py-3 sm:py-3.5 px-4 bg-slate-50/80 border-b border-slate-100 flex items-center justify-center">
+                    <span class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl text-white font-black text-lg sm:text-xl flex items-center justify-center shadow-md"
                           style="background-color: {{ $cardColor }}; box-shadow: 0 4px 14px {{ $cardColor }}50;">
                         {{ sprintf('%02d', $candidate->candidate_number) }}
                     </span>

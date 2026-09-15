@@ -33,10 +33,9 @@
                     <!-- Top Accent Color Bar -->
                     <div class="h-2 w-full" style="background-color: {{ $c->card_color }};"></div>
 
-                    <!-- Card Header -->
-                    <div class="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
-                        <span class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Nomor Urut</span>
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-white text-base shadow-sm" style="background-color: {{ $c->card_color }}; box-shadow: 0 2px 8px {{ $c->card_color }}40;">
+                    <!-- Card Header (Tengah) -->
+                    <div class="py-3 px-4 bg-slate-50/80 border-b border-slate-100 flex items-center justify-center">
+                        <div class="w-10 h-10 rounded-2xl flex items-center justify-center font-black text-white text-base shadow-sm" style="background-color: {{ $c->card_color }}; box-shadow: 0 2px 8px {{ $c->card_color }}40;">
                             {{ sprintf('%02d', $c->candidate_number) }}
                         </div>
                     </div>

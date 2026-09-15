@@ -40,6 +40,13 @@
     
     <style>
         [x-cloak] { display: none !important; }
+        @media (min-width: 768px) {
+            #admin-sidebar {
+                transform: none !important;
+                position: static !important;
+                display: flex !important;
+            }
+        }
     </style>
     @stack('styles')
 </head>
@@ -49,7 +56,7 @@
         <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 z-40 bg-slate-900/60 backdrop-blur-sm md:hidden" x-cloak></div>
 
         <!-- Sidebar Navigation -->
-        <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'" class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 transition-transform duration-200 ease-in-out flex flex-col md:static md:translate-x-0 shrink-0">
+        <aside id="admin-sidebar" :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'" class="fixed inset-y-0 left-0 z-50 w-64 bg-slate-900 text-slate-300 transition-transform duration-200 ease-in-out flex flex-col md:static md:translate-x-0 shrink-0">
             <!-- Brand -->
             <div class="h-16 px-6 flex items-center justify-between border-b border-slate-800">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-3">

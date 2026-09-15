@@ -53,10 +53,10 @@
     </div>
 
     <!-- Filters & Search Bar -->
-    <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3 items-center justify-between">
-        <form method="GET" action="{{ route('admin.voters.index') }}" class="w-full flex flex-col sm:flex-row gap-3 items-center">
+    <div class="bg-white p-4 rounded-3xl border border-slate-200 shadow-sm">
+        <form method="GET" action="{{ route('admin.voters.index') }}" class="flex flex-wrap items-center gap-3">
             <!-- Search -->
-            <div class="relative w-full sm:w-64">
+            <div class="relative flex-1 min-w-[200px]">
                 <input 
                     type="text" 
                     name="search" 
@@ -68,7 +68,7 @@
             </div>
 
             <!-- Category Filter -->
-            <select name="category" onchange="this.form.submit()" class="w-full sm:w-40 py-2 px-3 rounded-xl border border-slate-300 text-xs focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white font-semibold">
+            <select name="category" onchange="this.form.submit()" class="py-2 px-3 rounded-xl border border-slate-300 text-xs focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white font-semibold">
                 <option value="">Semua Kategori</option>
                 <option value="siswa" {{ request('category') == 'siswa' ? 'selected' : '' }}>🎓 Siswa</option>
                 <option value="guru" {{ request('category') == 'guru' ? 'selected' : '' }}>👨‍🏫 Guru</option>
@@ -76,7 +76,7 @@
             </select>
 
             <!-- Class Filter -->
-            <select name="class" onchange="this.form.submit()" class="w-full sm:w-40 py-2 px-3 rounded-xl border border-slate-300 text-xs focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white">
+            <select name="class" onchange="this.form.submit()" class="py-2 px-3 rounded-xl border border-slate-300 text-xs focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white">
                 <option value="">Semua Kelas/Unit</option>
                 @foreach ($classes as $c)
                     <option value="{{ $c }}" {{ request('class') == $c ? 'selected' : '' }}>{{ $c }}</option>
@@ -84,18 +84,18 @@
             </select>
 
             <!-- Status Filter -->
-            <select name="status" onchange="this.form.submit()" class="w-full sm:w-40 py-2 px-3 rounded-xl border border-slate-300 text-xs focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white">
+            <select name="status" onchange="this.form.submit()" class="py-2 px-3 rounded-xl border border-slate-300 text-xs focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white">
                 <option value="">Semua Status</option>
                 <option value="voted" {{ request('status') == 'voted' ? 'selected' : '' }}>Sudah Memilih</option>
                 <option value="unvoted" {{ request('status') == 'unvoted' ? 'selected' : '' }}>Belum Memilih</option>
             </select>
 
-            <button type="submit" class="w-full sm:w-auto px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors">
+            <button type="submit" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors shrink-0">
                 Terapkan
             </button>
 
             @if(request()->hasAny(['search', 'category', 'class', 'status']))
-                <a href="{{ route('admin.voters.index') }}" class="text-xs text-rose-600 hover:underline">Reset</a>
+                <a href="{{ route('admin.voters.index') }}" class="text-xs text-rose-600 hover:underline shrink-0">Reset</a>
             @endif
         </form>
     </div>
@@ -103,7 +103,7 @@
     <!-- Table -->
     <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
+            <table class="w-full text-left text-xs whitespace-nowrap">
                 <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200">
                     <tr>
                         <th class="px-4 py-3.5">No</th>

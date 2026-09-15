@@ -71,9 +71,29 @@
 
                 <div>
                     <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                        Warna Aksen Badge (HEX)
+                        Warna Aksen Badge & Kartu (HEX)
                     </label>
-                    <input type="text" name="color_tag" value="{{ old('color_tag', '#4f46e5') }}" placeholder="#4f46e5" class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20">
+                    <div class="flex items-center gap-2">
+                        <input type="color" id="color_picker" 
+                               value="{{ old('color_tag', \App\Models\Candidate::DEFAULT_COLORS[$nextNumber] ?? '#4f46e5') }}" 
+                               oninput="document.getElementById('color_tag_input').value = this.value"
+                               class="w-10 h-10 rounded-xl border border-slate-300 cursor-pointer p-1 shrink-0">
+                        <input type="text" id="color_tag_input" name="color_tag" 
+                               value="{{ old('color_tag', \App\Models\Candidate::DEFAULT_COLORS[$nextNumber] ?? '#4f46e5') }}" 
+                               placeholder="#4f46e5" 
+                               oninput="document.getElementById('color_picker').value = this.value"
+                               class="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20">
+                    </div>
+                    <!-- Quick Presets -->
+                    <div class="flex items-center gap-1.5 mt-2 flex-wrap">
+                        <span class="text-[10px] text-slate-400 font-semibold mr-1">Preset:</span>
+                        <button type="button" onclick="document.getElementById('color_tag_input').value='#4f46e5'; document.getElementById('color_picker').value='#4f46e5';" class="w-6 h-6 rounded-lg bg-[#4f46e5] border-2 border-white shadow-sm hover:scale-110 transition-transform" title="01 - Biru"></button>
+                        <button type="button" onclick="document.getElementById('color_tag_input').value='#059669'; document.getElementById('color_picker').value='#059669';" class="w-6 h-6 rounded-lg bg-[#059669] border-2 border-white shadow-sm hover:scale-110 transition-transform" title="02 - Hijau"></button>
+                        <button type="button" onclick="document.getElementById('color_tag_input').value='#dc2626'; document.getElementById('color_picker').value='#dc2626';" class="w-6 h-6 rounded-lg bg-[#dc2626] border-2 border-white shadow-sm hover:scale-110 transition-transform" title="03 - Merah"></button>
+                        <button type="button" onclick="document.getElementById('color_tag_input').value='#9333ea'; document.getElementById('color_picker').value='#9333ea';" class="w-6 h-6 rounded-lg bg-[#9333ea] border-2 border-white shadow-sm hover:scale-110 transition-transform" title="04 - Ungu"></button>
+                        <button type="button" onclick="document.getElementById('color_tag_input').value='#0284c7'; document.getElementById('color_picker').value='#0284c7';" class="w-6 h-6 rounded-lg bg-[#0284c7] border-2 border-white shadow-sm hover:scale-110 transition-transform" title="Sky Blue"></button>
+                        <button type="button" onclick="document.getElementById('color_tag_input').value='#d97706'; document.getElementById('color_picker').value='#d97706';" class="w-6 h-6 rounded-lg bg-[#d97706] border-2 border-white shadow-sm hover:scale-110 transition-transform" title="Amber"></button>
+                    </div>
                     @error('color_tag') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
                 </div>
             </div>
@@ -114,9 +134,10 @@
 
             <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
-                    Foto Resmi Paslon (JPG/PNG, Maks. 2MB)
+                    Foto Resmi Paslon (JPG/PNG/WebP &bull; Otomatis Dikompres ke &le; 200KB)
                 </label>
-                <input type="file" name="photo" accept="image/*" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                <input type="file" name="photo" accept="image/*" class="block w-full text-xs text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                <p class="text-[11px] text-slate-400 mt-1">Disarankan foto berorientasi portrait / tegak (rasio 3:4 atau 4:5). Sistem otomatis mengompres foto menjadi &le; 200KB yang tajam dan cepat dimuat.</p>
                 @error('photo') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
             </div>
 

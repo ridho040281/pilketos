@@ -32,7 +32,7 @@
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                 Cetak Dokumen (A4)
             </button>
-            <a href="{{ route('admin.dashboard') }}" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">
+            <a href="{{ route('admin.laporan.index', ['tab' => 'berita-acara']) }}" class="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition-colors">
                 Kembali
             </a>
         </div>
@@ -142,7 +142,7 @@
             <div class="mb-8 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm">
                 <h4 class="font-bold uppercase text-slate-900 mb-1">III. PENETAPAN {{ !empty($winner->co_leader_name) ? 'PASANGAN CALON' : 'CALON' }} TERPILIH</h4>
                 <p class="leading-relaxed">
-                    Menetapkan bahwa {{ !empty($winner->co_leader_name) ? 'Pasangan Calon' : 'Calon' }} Nomor Urut <strong>{{ sprintf('%02d', $winner->candidate_number) }}</strong> atas nama <strong>{{ $winner->leader_name }}</strong>{{ !empty($winner->co_leader_name) ? ' dan <strong>' . $winner->co_leader_name . '</strong>' : '' }} yang memperoleh sebanyak <strong>{{ number_format($winner->ballots_count, 0, ',', '.') }} suara ({{ $winner->percentage }}%)</strong>, secara sah ditetapkan sebagai <strong>{{ !empty($winner->co_leader_name) ? 'Ketua dan Wakil Ketua' : 'Ketua' }} OSIS Terpilih Periode {{ $setting->academic_year }}</strong>.
+                    Menetapkan bahwa {{ !empty($winner->co_leader_name) ? 'Pasangan Calon' : 'Calon' }} Nomor Urut <strong>{{ sprintf('%02d', $winner->candidate_number) }}</strong> atas nama <strong>{{ $winner->leader_name }}</strong>@if(!empty($winner->co_leader_name)) dan <strong>{{ $winner->co_leader_name }}</strong>@endif yang memperoleh sebanyak <strong>{{ number_format($winner->ballots_count, 0, ',', '.') }} suara ({{ $winner->percentage }}%)</strong>, secara sah ditetapkan sebagai <strong>{{ !empty($winner->co_leader_name) ? 'Ketua dan Wakil Ketua' : 'Ketua' }} OSIS Terpilih Periode {{ $setting->academic_year }}</strong>.
                 </p>
             </div>
         @endif

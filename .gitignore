@@ -27,6 +27,8 @@ Homestead.yaml
 Thumbs.db
 *.zip
 *.rar
+*.tar.gz
+*.gz
 *.sqlite
 *.sqlite-journal
 .gemini/

@@ -77,8 +77,12 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function (): 
     Route::post('/api-integration/pull', [ApiIntegrationController::class, 'pullData'])->name('api-integration.pull');
     Route::post('/api-integration/regenerate-key', [ApiIntegrationController::class, 'regeneratePilketosKey'])->name('api-integration.regenerate-key');
 
-    // Berita Acara Pleno Resmi
-    Route::get('/berita-acara', [BeritaAcaraController::class, 'index'])->name('berita-acara.index');
+    // Laporan Pemilihan: Tab 1 Daftar Hadir & Tab 2 Berita Acara Pleno
+    Route::get('/laporan', [BeritaAcaraController::class, 'index'])->name('laporan.index');
+    Route::get('/laporan/cetak-daftar-hadir', [BeritaAcaraController::class, 'printDaftarHadir'])->name('laporan.cetak-daftar-hadir');
+    Route::get('/laporan/export-daftar-hadir', [BeritaAcaraController::class, 'exportDaftarHadir'])->name('laporan.export-daftar-hadir');
+    Route::get('/laporan/cetak-berita-acara', [BeritaAcaraController::class, 'printBeritaAcara'])->name('laporan.cetak-berita-acara');
+    Route::get('/berita-acara', [BeritaAcaraController::class, 'legacyRedirect'])->name('berita-acara.index');
 });
 
 /*

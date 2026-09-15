@@ -1,0 +1,227 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Candidate;
+use App\Models\ElectionSetting;
+use App\Models\User;
+use App\Models\Voter;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class LaporanTest extends TestCase
+{
+    use RefreshDatabase;
+
+    protected User $admin;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        ElectionSetting::create([
+            'id' => 1,
+            'school_name' => 'SMA Kebangsaan',
+            'election_title' => 'Pemilihan Ketua OSIS',
+            'academic_year' => '2026/2027',
+            'is_active' => true,
+            'show_quick_count' => true,
+        ]);
+
+        $this->admin = User::create([
+            'name' => 'Administrator',
+            'email' => 'admin@pilketos.test',
+            'password' => bcrypt('password123'),
+            'role' => 'admin',
+        ]);
+
+        Candidate::create([
+            'candidate_number' => 1,
+            'leader_name' => 'Ahmad Calon',
+            'co_leader_name' => 'Budi Wakil',
+            'vision' => 'Visi A',
+            'mission' => 'Misi A',
+        ]);
+    }
+
+    public function test_guest_cannot_access_laporan_page(): void
+    {
+        $response = $this->get(route('admin.laporan.index'));
+        $response->assertRedirect(route('admin.login'));
+    }
+
+    public function test_admin_can_access_laporan_page_with_both_tabs(): void
+    {
+        Voter::create([
+            'nisn' => '1001',
+            'name' => 'Siswa Hadir',
+            'category' => 'siswa',
+            'class' => 'XII-IPA-1',
+            'passcode' => 'ABC123',
+            'has_voted' => true,
+            'voted_at' => now(),
+        ]);
+
+        Voter::create([
+            'nisn' => '1002',
+            'name' => 'Siswa Belum',
+            'category' => 'siswa',
+            'class' => 'XII-IPA-2',
+            'passcode' => 'XYZ789',
+            'has_voted' => false,
+        ]);
+
+        $response = $this->actingAs($this->admin)->get(route('admin.laporan.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Laporan dan Rekapitulasi Pemilihan');
+        $response->assertSee('Daftar Hadir Pemilih');
+        $response->assertSee('Berita Acara Pleno');
+        $response->assertSee('Siswa Hadir');
+        $response->assertSee('Siswa Belum');
+    }
+
+    public function test_voters_appear_even_when_zero_have_voted(): void
+    {
+        Voter::create([
+            'nisn' => '5001',
+            'name' => 'Budi Belum Memilih',
+            'category' => 'siswa',
+            'class' => 'X-1',
+            'passcode' => 'TEST01',
+            'has_voted' => false,
+        ]);
+
+        $response = $this->actingAs($this->admin)->get(route('admin.laporan.index'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Budi Belum Memilih');
+        $response->assertSee('Belum Memilih');
+    }
+
+    public function test_admin_can_filter_daftar_hadir(): void
+    {
+        Voter::create([
+            'nisn' => '2001',
+            'name' => 'Dewi Lestari',
+            'category' => 'siswa',
+            'class' => 'XI-RPL-1',
+            'passcode' => 'PASS01',
+            'has_voted' => true,
+            'voted_at' => now(),
+        ]);
+
+        Voter::create([
+            'nisn' => '2002',
+            'name' => 'Pak Joko',
+            'category' => 'guru',
+            'class' => 'Guru',
+            'passcode' => 'PASS02',
+            'has_voted' => true,
+            'voted_at' => now(),
+        ]);
+
+        Voter::create([
+            'nisn' => '2003',
+            'name' => 'Siti Belum',
+            'category' => 'siswa',
+            'class' => 'XI-RPL-1',
+            'passcode' => 'PASS03',
+            'has_voted' => false,
+        ]);
+
+        // Default all shows both voted and unvoted
+        $responseAll = $this->actingAs($this->admin)->get(route('admin.laporan.index'));
+        $responseAll->assertSee('Dewi Lestari');
+        $responseAll->assertSee('Siti Belum');
+
+        // Filter by status voted
+        $responseVoted = $this->actingAs($this->admin)->get(route('admin.laporan.index', [
+            'status' => 'voted',
+        ]));
+        $responseVoted->assertSee('Dewi Lestari');
+        $responseVoted->assertDontSee('Siti Belum');
+
+        // Filter by status unvoted
+        $responseUnvoted = $this->actingAs($this->admin)->get(route('admin.laporan.index', [
+            'status' => 'unvoted',
+        ]));
+        $responseUnvoted->assertSee('Siti Belum');
+        $responseUnvoted->assertDontSee('Dewi Lestari');
+
+        // Filter by category guru
+        $response = $this->actingAs($this->admin)->get(route('admin.laporan.index', [
+            'tab' => 'daftar-hadir',
+            'category' => 'guru',
+        ]));
+
+        $response->assertStatus(200);
+        $response->assertSee('Pak Joko');
+        $response->assertDontSee('Dewi Lestari');
+
+        // Filter by search name
+        $responseSearch = $this->actingAs($this->admin)->get(route('admin.laporan.index', [
+            'tab' => 'daftar-hadir',
+            'search' => 'Dewi',
+        ]));
+
+        $responseSearch->assertStatus(200);
+        $responseSearch->assertSee('Dewi Lestari');
+        $responseSearch->assertDontSee('Pak Joko');
+    }
+
+    public function test_admin_can_print_daftar_hadir(): void
+    {
+        Voter::create([
+            'nisn' => '3001',
+            'name' => 'Pemilih Cetak',
+            'category' => 'siswa',
+            'class' => 'X-1',
+            'passcode' => 'PASS99',
+            'has_voted' => true,
+            'voted_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->admin)->get(route('admin.laporan.cetak-daftar-hadir'));
+
+        $response->assertStatus(200);
+        $response->assertSee('DAFTAR HADIR PEMILIH DIGITAL (E-VOTING)');
+        $response->assertSee('Pemilih Cetak');
+        $response->assertSee('Petugas Presensi (KPPS)');
+    }
+
+    public function test_admin_can_export_daftar_hadir_excel(): void
+    {
+        Voter::create([
+            'nisn' => '4001',
+            'name' => 'Pemilih Export',
+            'category' => 'siswa',
+            'class' => 'X-2',
+            'passcode' => 'EXP123',
+            'has_voted' => true,
+            'voted_at' => now(),
+        ]);
+
+        $response = $this->actingAs($this->admin)->get(route('admin.laporan.export-daftar-hadir'));
+
+        $response->assertStatus(200);
+        $response->assertHeader('content-type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        $this->assertNotEmpty($response->getContent());
+    }
+
+    public function test_admin_can_print_berita_acara(): void
+    {
+        $response = $this->actingAs($this->admin)->get(route('admin.laporan.cetak-berita-acara'));
+
+        $response->assertStatus(200);
+        $response->assertSee('BERITA ACARA RAPAT PLENO PENGHITUNGAN SUARA');
+        $response->assertSee('Ahmad Calon');
+    }
+
+    public function test_legacy_berita_acara_route_redirects_to_laporan_tab(): void
+    {
+        $response = $this->actingAs($this->admin)->get(route('admin.berita-acara.index'));
+
+        $response->assertRedirect(route('admin.laporan.index', ['tab' => 'berita-acara']));
+    }
+}

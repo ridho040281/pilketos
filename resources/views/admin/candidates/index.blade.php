@@ -28,23 +28,30 @@
     @endphp
     <div class="grid {{ $adminGridClass }} gap-5">
         @forelse ($candidates as $c)
-            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between">
+            <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-md transition-shadow">
                 <div>
+                    <!-- Top Accent Color Bar -->
+                    <div class="h-2 w-full" style="background-color: {{ $c->card_color }};"></div>
+
                     <!-- Card Header -->
                     <div class="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
                         <span class="text-xs font-extrabold uppercase tracking-wider text-slate-400">Nomor Urut</span>
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-white text-base shadow-sm" style="background-color: {{ $c->color_tag ?? '#4f46e5' }}">
+                        <div class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-white text-base shadow-sm" style="background-color: {{ $c->card_color }}; box-shadow: 0 2px 8px {{ $c->card_color }}40;">
                             {{ sprintf('%02d', $c->candidate_number) }}
                         </div>
                     </div>
 
-                    <!-- Photo -->
-                    <div class="h-48 bg-slate-100 relative overflow-hidden flex items-center justify-center">
+                    <!-- Photo (Portrait 3:4) -->
+                    <div class="aspect-[3/4] w-full bg-slate-100 relative overflow-hidden flex items-center justify-center" style="aspect-ratio: 3/4;">
                         @if ($c->photo_path)
-                            <img src="{{ asset('storage/' . $c->photo_path) }}" alt="{{ $c->leader_name }}" class="w-full h-full object-cover">
+                            <img src="{{ asset('storage/' . $c->photo_path) }}" alt="{{ $c->leader_name }}" class="w-full h-full object-cover object-top">
                         @else
-                            <div class="w-20 h-20 rounded-full bg-slate-200 flex items-center justify-center text-slate-400 font-bold text-2xl">
-                                {{ sprintf('%02d', $c->candidate_number) }}
+                            <div class="flex flex-col items-center justify-center text-slate-400 p-4 text-center">
+                                <div class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-slate-200 flex items-center justify-center text-slate-400 font-black text-2xl mb-2 shadow-inner">
+                                    {{ sprintf('%02d', $c->candidate_number) }}
+                                </div>
+                                <span class="text-xs font-semibold text-slate-400">Belum Ada Foto</span>
+                                <span class="text-[10px] text-slate-400 mt-0.5">Format Portrait (3:4)</span>
                             </div>
                         @endif
                     </div>
@@ -52,7 +59,7 @@
                     <!-- Details -->
                     <div class="p-5 space-y-3">
                         <div>
-                            <span class="text-[10px] font-bold uppercase tracking-widest text-indigo-600">Calon Ketua</span>
+                            <span class="text-[10px] font-bold uppercase tracking-widest" style="color: {{ $c->card_color }};">Calon Ketua</span>
                             <h4 class="text-base font-bold text-slate-900">{{ $c->leader_name }}</h4>
                         </div>
                         @if(!empty($c->co_leader_name))

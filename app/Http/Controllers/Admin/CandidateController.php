@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Candidate;
+use App\Support\ImageCompressor;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -45,16 +46,19 @@ class CandidateController extends Controller
             'vision' => ['required', 'string'],
             'mission' => ['required', 'string'],
             'color_tag' => ['nullable', 'string', 'max:20'],
-            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:15360'],
         ]);
 
         if ($request->hasFile('photo')) {
-            $path = $request->file('photo')->store('candidates', 'public');
+            $path = ImageCompressor::compressAndStore($request->file('photo'), 'candidates', 'public', 204800);
             $validated['photo_path'] = $path;
         }
 
         unset($validated['photo']);
         $validated['co_leader_name'] = $request->filled('co_leader_name') ? trim($request->co_leader_name) : null;
+        if (empty($validated['color_tag'])) {
+            $validated['color_tag'] = Candidate::DEFAULT_COLORS[$validated['candidate_number']] ?? '#4f46e5';
+        }
         Candidate::create($validated);
 
         return redirect()->route('admin.candidates.index')->with('success', 'Data Calon / Kandidat berhasil ditambahkan.');
@@ -80,19 +84,22 @@ class CandidateController extends Controller
             'vision' => ['required', 'string'],
             'mission' => ['required', 'string'],
             'color_tag' => ['nullable', 'string', 'max:20'],
-            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:2048'],
+            'photo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,webp', 'max:15360'],
         ]);
 
         if ($request->hasFile('photo')) {
             if ($candidate->photo_path && Storage::disk('public')->exists($candidate->photo_path)) {
                 Storage::disk('public')->delete($candidate->photo_path);
             }
-            $path = $request->file('photo')->store('candidates', 'public');
+            $path = ImageCompressor::compressAndStore($request->file('photo'), 'candidates', 'public', 204800);
             $validated['photo_path'] = $path;
         }
 
         unset($validated['photo']);
         $validated['co_leader_name'] = $request->filled('co_leader_name') ? trim($request->co_leader_name) : null;
+        if (empty($validated['color_tag'])) {
+            $validated['color_tag'] = Candidate::DEFAULT_COLORS[$validated['candidate_number']] ?? '#4f46e5';
+        }
         $candidate->update($validated);
 
         return redirect()->route('admin.candidates.index')->with('success', 'Data Calon / Kandidat berhasil diperbarui.');

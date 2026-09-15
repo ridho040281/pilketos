@@ -96,9 +96,9 @@
                     <span class="ml-auto text-xs bg-emerald-950 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-800/50">Live</span>
                 </a>
 
-                <a href="{{ route('admin.berita-acara.index') }}" class="flex items-center px-3.5 py-2.5 rounded-xl font-medium text-sm transition-colors {{ request()->routeIs('admin.berita-acara.*') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
-                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    Berita Acara Pleno
+                <a href="{{ route('admin.laporan.index') }}" class="flex items-center px-3.5 py-2.5 rounded-xl font-medium text-sm transition-colors {{ request()->routeIs('admin.laporan.*', 'admin.berita-acara.*') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">
+                    <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    Laporan
                 </a>
 
                 <a href="{{ route('admin.settings.edit') }}" class="flex items-center px-3.5 py-2.5 rounded-xl font-medium text-sm transition-colors {{ request()->routeIs('admin.settings.*') ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-300 hover:bg-slate-800 hover:text-white' }}">

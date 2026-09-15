@@ -21,8 +21,10 @@ class SettingController extends Controller
         $academicYears = ElectionSetting::getAcademicYearsList();
         $totalVoters = Voter::count();
         $votedCount = Voter::where('has_voted', true)->count();
+        $totalGuruVoters = Voter::where('category', Voter::CATEGORY_GURU)->count();
+        $votedGuruCount = Voter::where('category', Voter::CATEGORY_GURU)->where('has_voted', true)->count();
 
-        return view('admin.settings.edit', compact('setting', 'academicYears', 'totalVoters', 'votedCount'));
+        return view('admin.settings.edit', compact('setting', 'academicYears', 'totalVoters', 'votedCount', 'totalGuruVoters', 'votedGuruCount'));
     }
 
     /**

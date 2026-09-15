@@ -71,10 +71,12 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function (): 
     Route::get('/settings', [SettingController::class, 'edit'])->name('settings.edit');
     Route::put('/settings', [SettingController::class, 'update'])->name('settings.update');
 
-    // Integrasi API Database Sekolah
+    // Integrasi API Database Sekolah & Guru
     Route::get('/api-integration', [ApiIntegrationController::class, 'index'])->name('api-integration.index');
     Route::put('/api-integration', [ApiIntegrationController::class, 'updateSettings'])->name('api-integration.update');
     Route::post('/api-integration/pull', [ApiIntegrationController::class, 'pullData'])->name('api-integration.pull');
+    Route::put('/api-integration/guru', [ApiIntegrationController::class, 'updateGuruSettings'])->name('api-integration.update-guru');
+    Route::post('/api-integration/pull-guru', [ApiIntegrationController::class, 'pullGuruData'])->name('api-integration.pull-guru');
     Route::post('/api-integration/regenerate-key', [ApiIntegrationController::class, 'regeneratePilketosKey'])->name('api-integration.regenerate-key');
 
     // Laporan Pemilihan: Tab 1 Daftar Hadir & Tab 2 Berita Acara Pleno

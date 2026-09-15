@@ -54,6 +54,19 @@
                 <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
             @endif
         </button>
+
+        <button 
+            type="button"
+            @click="mainTab = 'api_guru'" 
+            :class="mainTab === 'api_guru' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30 font-bold' : 'text-slate-600 hover:bg-slate-100 font-semibold'"
+            class="px-5 py-2.5 rounded-2xl text-xs transition-all flex items-center gap-2"
+        >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            <span>Integrasi API Guru</span>
+            @if(!empty($setting->guru_api_url))
+                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+            @endif
+        </button>
     </div>
 
     <!-- ==================== TAB 1: PENGATURAN UMUM TPS ==================== -->
@@ -497,6 +510,180 @@ curl_setopt($ch, CURLOPT_HTTPHEADER, [
 
 $response = curl_exec($ch);
 curl_close($ch);</pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== TAB 3: INTEGRASI API GURU ==================== -->
+    <div x-show="mainTab === 'api_guru'" class="space-y-6" x-cloak>
+        <!-- Top KPI Overview Guru -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1">Total Pemilih Guru (DPT)</span>
+                <div class="text-2xl font-black text-slate-900">{{ number_format($totalGuruVoters, 0, ',', '.') }} Guru</div>
+                <p class="text-xs text-slate-500 mt-1">{{ number_format($votedGuruCount, 0, ',', '.') }} telah menggunakan hak suara</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1">Terakhir Sinkronisasi Guru</span>
+                <div class="text-base font-bold text-slate-900">
+                    {{ $setting->last_guru_sync_at ? $setting->last_guru_sync_at->format('d/m/Y H:i') . ' WIB' : 'Belum Pernah' }}
+                </div>
+                <p class="text-xs text-indigo-600 font-semibold mt-1">
+                    {{ $setting->last_guru_sync_count ? number_format($setting->last_guru_sync_count, 0, ',', '.') . ' data diproses' : '-' }}
+                </p>
+            </div>
+
+            <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                <div>
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-400 block mb-1">Status Koneksi Guru</span>
+                    <div class="flex items-center gap-2 mt-1">
+                        <span class="w-2.5 h-2.5 rounded-full {{ !empty($setting->guru_api_url) ? 'bg-emerald-500 ring-4 ring-emerald-100' : 'bg-amber-400 ring-4 ring-amber-100' }}"></span>
+                        <span class="text-sm font-bold {{ !empty($setting->guru_api_url) ? 'text-emerald-700' : 'text-amber-700' }}">
+                            {{ !empty($setting->guru_api_url) ? 'Endpoint Terhubung' : 'Belum Dikonfigurasi' }}
+                        </span>
+                    </div>
+                </div>
+                <p class="text-xs text-slate-400 mt-2 truncate">{{ $setting->guru_api_url ?: 'URL belum diisi' }}</p>
+            </div>
+        </div>
+
+        <!-- Form Konfigurasi API Guru -->
+        <div class="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-100">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Konfigurasi Integrasi API Guru</h3>
+                    <p class="text-xs text-slate-500">Hubungkan Pilketos ke endpoint API Guru sekolah untuk menarik daftar guru dan tenaga pendidik secara otomatis</p>
+                </div>
+            </div>
+
+            <form action="{{ route('admin.api-integration.update-guru') }}" method="POST" class="space-y-5">
+                @csrf
+                @method('PUT')
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                        URL Endpoint API Guru <span class="text-rose-500">*</span>
+                    </label>
+                    <div class="relative">
+                        <input 
+                            type="url" 
+                            name="guru_api_url" 
+                            value="{{ old('guru_api_url', $setting->guru_api_url) }}" 
+                            placeholder="https://contoh-api.sekolah.sch.id/api/guru"
+                            required
+                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20"
+                        >
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1">Masukkan URL API sekolah yang merespons daftar data guru (JSON).</p>
+                    @error('guru_api_url') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                            Client ID
+                        </label>
+                        <input 
+                            type="text" 
+                            name="guru_api_client_id" 
+                            value="{{ old('guru_api_client_id', $setting->guru_api_client_id ?? 'client_edp3yftse3bxcrcf') }}" 
+                            placeholder="client_edp3yftse3bxcrcf"
+                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20"
+                        >
+                        <p class="text-[11px] text-slate-400 mt-1">Dikirim otomatis melalui HTTP header <code class="text-indigo-600 font-mono">X-CLIENT-ID</code>.</p>
+                        @error('guru_api_client_id') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                            Client Secret
+                        </label>
+                        <input 
+                            type="text" 
+                            name="guru_api_secret" 
+                            value="{{ old('guru_api_secret', $setting->guru_api_secret ?? 'EgUmiD5xGq1v6IdUMlTvxGModoUOoCjCIKncKu2I') }}" 
+                            placeholder="EgUmiD5xGq1v6IdUMlTvxGModoUOoCjCIKncKu2I"
+                            class="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm font-mono focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20"
+                        >
+                        <p class="text-[11px] text-slate-400 mt-1">Dikirim otomatis melalui HTTP header <code class="text-indigo-600 font-mono">X-CLIENT-SECRET</code>.</p>
+                        @error('guru_api_secret') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">
+                        API Token
+                    </label>
+                    <textarea 
+                        name="guru_api_token" 
+                        rows="2"
+                        placeholder="UOcvFMOE4fPisQxFDh1W7Q77wx6glE9P87wkcOswAd6RtxVLFvSmV3rrbXGW"
+                        class="w-full px-4 py-2 rounded-xl border border-slate-300 text-xs font-mono focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20"
+                    >{{ old('guru_api_token', $setting->guru_api_token ?? 'UOcvFMOE4fPisQxFDh1W7Q77wx6glE9P87wkcOswAd6RtxVLFvSmV3rrbXGW') }}</textarea>
+                    <p class="text-[11px] text-slate-400 mt-1">Dikirim via header <code class="text-indigo-600 font-mono">Authorization: Bearer &lt;token&gt;</code> dan <code class="text-indigo-600 font-mono">X-API-TOKEN</code>.</p>
+                    @error('guru_api_token') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
+                </div>
+
+                <div class="pt-4 border-t border-slate-100 flex items-center justify-end">
+                    <button type="submit" class="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-lg shadow-indigo-600/30 transition-colors">
+                        Simpan Pengaturan API Guru
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tombol Tarik & Sinkronkan Data Guru -->
+        <div class="bg-gradient-to-br from-indigo-50/70 to-purple-50/50 rounded-3xl border border-indigo-100 p-6 sm:p-8 shadow-sm">
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div class="space-y-2">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-100/80 text-indigo-700 text-xs font-bold">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                        <span>Tarik & Sinkronkan Data DPT Guru</span>
+                    </div>
+                    <h3 class="text-lg font-black text-slate-900">Sinkronkan Data Guru ke DPT Pilketos</h3>
+                    <p class="text-xs text-slate-600 max-w-2xl leading-relaxed">
+                        Sistem akan menghubungi Endpoint API Guru di atas, mengunduh data daftar guru, dan menyimpannya secara otomatis ke tabel DPT dengan kategori <strong>Guru</strong>. Setiap guru yang baru akan diberikan kode coblos unik (passcode). Jika guru sudah ada, data nama dan jabatan akan diperbarui tanpa membuat duplikat.
+                    </p>
+                </div>
+
+                <form action="{{ route('admin.api-integration.pull-guru') }}" method="POST" onsubmit="return confirm('Mulai tarik data guru dari API sekolah? Proses ini akan menambahkan guru ke DPT.')" class="shrink-0">
+                    @csrf
+                    <button 
+                        type="submit" 
+                        @if(empty($setting->guru_api_url)) disabled @endif
+                        class="w-full sm:w-auto px-6 py-3.5 rounded-2xl {{ !empty($setting->guru_api_url) ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-600/30' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }} font-bold text-xs flex items-center justify-center gap-2.5 transition-all"
+                    >
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        <span>Tarik & Sinkronkan Data Guru Sekarang</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Petunjuk Format Data API Guru -->
+            <div class="mt-6 pt-6 border-t border-indigo-100/80 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs text-slate-600">
+                <div class="bg-white/80 p-4 rounded-2xl border border-indigo-50">
+                    <h5 class="font-bold text-slate-800 mb-1 flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        Format Field yang Didukung
+                    </h5>
+                    <ul class="space-y-1 text-slate-500 list-disc list-inside">
+                        <li><strong>Identitas:</strong> <code class="text-indigo-600">nip</code>, <code class="text-indigo-600">nuptk</code>, <code class="text-indigo-600">nik</code>, atau <code class="text-indigo-600">id</code></li>
+                        <li><strong>Nama:</strong> <code class="text-indigo-600">nama</code>, <code class="text-indigo-600">name</code>, atau <code class="text-indigo-600">nama_lengkap</code></li>
+                        <li><strong>Jabatan / Mapel:</strong> <code class="text-indigo-600">mapel</code>, <code class="text-indigo-600">jabatan</code>, atau <code class="text-indigo-600">kelas</code></li>
+                        <li><strong>Jenis Kelamin:</strong> <code class="text-indigo-600">jk</code> atau <code class="text-indigo-600">gender</code> ('L' / 'P')</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white/80 p-4 rounded-2xl border border-indigo-50">
+                    <h5 class="font-bold text-slate-800 mb-1 flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                        Otomasi & Keamanan Data
+                    </h5>
+                    <p class="text-slate-500 leading-relaxed">
+                        Data pemilih guru langsung masuk ke daftar DPT Pilketos dengan kategori <strong>Guru</strong>. Token/passcode coblos dibuat secara acak dan unik. Kartu suara untuk guru dapat langsung dicetak pada menu Manajemen DPT.
+                    </p>
+                </div>
             </div>
         </div>
     </div>

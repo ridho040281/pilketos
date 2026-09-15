@@ -23,6 +23,12 @@ use Illuminate\Support\Facades\Storage;
     'pilketos_api_key',
     'last_sync_at',
     'last_sync_count',
+    'guru_api_url',
+    'guru_api_client_id',
+    'guru_api_secret',
+    'guru_api_token',
+    'last_guru_sync_at',
+    'last_guru_sync_count',
 ])]
 class ElectionSetting extends Model
 {
@@ -38,6 +44,8 @@ class ElectionSetting extends Model
             'show_quick_count' => 'boolean',
             'last_sync_at' => 'datetime',
             'last_sync_count' => 'integer',
+            'last_guru_sync_at' => 'datetime',
+            'last_guru_sync_count' => 'integer',
         ];
     }
 
@@ -77,6 +85,9 @@ class ElectionSetting extends Model
                 'is_active' => true,
                 'show_quick_count' => false,
                 'pilketos_api_key' => bin2hex(random_bytes(16)),
+                'guru_api_client_id' => 'client_edp3yftse3bxcrcf',
+                'guru_api_secret' => 'EgUmiD5xGq1v6IdUMlTvxGModoUOoCjCIKncKu2I',
+                'guru_api_token' => 'UOcvFMOE4fPisQxFDh1W7Q77wx6glE9P87wkcOswAd6RtxVLFvSmV3rrbXGW',
             ]
         );
 

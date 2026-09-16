@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ElectionSetting;
 use App\Models\Voter;
+use App\Services\DptDeduplicationService;
 use Exception;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -244,7 +245,7 @@ class ApiIntegrationController extends Controller
             DB::transaction(function () use ($teachers, &$insertedCount, &$updatedCount): void {
                 foreach ($teachers as $row) {
                     $nip = ! empty($row['nip']) ? trim((string) $row['nip']) : null;
-                    $name = ! empty($row['name']) ? trim((string) $row['name']) : null;
+                    $name = ! empty($row['name']) ? trim((string) preg_replace('/\s+/', ' ', (string) $row['name'])) : null;
                     $class = ! empty($row['class']) ? trim((string) $row['class']) : 'Guru';
                     $gender = ! empty($row['gender']) ? strtoupper(trim((string) $row['gender'])) : null;
                     if (! in_array($gender, ['L', 'P'])) {
@@ -261,7 +262,7 @@ class ApiIntegrationController extends Controller
                     }
                     if (! $existing) {
                         $existing = Voter::where('category', Voter::CATEGORY_GURU)
-                            ->where('name', $name)
+                            ->whereRaw('TRIM(LOWER(name)) = ?', [strtolower($name)])
                             ->first();
                     }
 
@@ -435,5 +436,21 @@ class ApiIntegrationController extends Controller
         }
 
         return $normalized;
+    }
+
+    /**
+     * Clean duplicate teachers from the voters list.
+     */
+    public function cleanDuplicateTeachers(): RedirectResponse
+    {
+        $result = DptDeduplicationService::cleanDuplicateTeachers(false);
+
+        if ($result['deleted_count'] === 0) {
+            return redirect()->route('admin.settings.edit', ['tab' => 'api_guru'])
+                ->with('success', 'Pemeriksaan selesai: Tidak ditemukan data guru ganda/duplikat.');
+        }
+
+        return redirect()->route('admin.settings.edit', ['tab' => 'api_guru'])
+            ->with('success', "Berhasil membersihkan {$result['deleted_count']} data guru duplikat dari {$result['duplicate_groups']} kelompok nama.");
     }
 }

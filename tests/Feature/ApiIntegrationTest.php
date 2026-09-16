@@ -291,4 +291,110 @@ class ApiIntegrationTest extends TestCase
         $this->assertEquals('Guru Matematika Baru', $existing->class);
         $this->assertEquals('ABC123', $existing->passcode); // passcode preserved
     }
+
+    public function test_clean_duplicate_teachers_preserves_voted_and_merges_nip(): void
+    {
+        // Teacher 1: older ID, has NOT voted, no NIP
+        $t1 = Voter::create([
+            'nisn' => null,
+            'name' => 'Budi Santoso, S.Pd',
+            'category' => Voter::CATEGORY_GURU,
+            'class' => 'Guru IPA',
+            'gender' => 'L',
+            'passcode' => 'PAS001',
+            'has_voted' => false,
+        ]);
+
+        // Teacher 2: newer ID, HAS voted, has NIP
+        $t2 = Voter::create([
+            'nisn' => '197501012000011001',
+            'name' => 'Budi Santoso, S.Pd',
+            'category' => Voter::CATEGORY_GURU,
+            'class' => 'Guru IPA',
+            'gender' => 'L',
+            'passcode' => 'PAS002',
+            'has_voted' => true,
+            'voted_at' => now(),
+        ]);
+
+        // Teacher 3: distinct teacher, should NOT be deleted
+        $t3 = Voter::create([
+            'nisn' => '198002022005012002',
+            'name' => 'Siti Nurhaliza, M.Pd',
+            'category' => Voter::CATEGORY_GURU,
+            'class' => 'Guru B.Indo',
+            'gender' => 'P',
+            'passcode' => 'PAS003',
+            'has_voted' => false,
+        ]);
+
+        $this->assertEquals(3, Voter::where('category', 'guru')->count());
+
+        // Call Artisan Command
+        $this->artisan('dpt:clean-duplicate-guru')
+            ->expectsOutputToContain('Sukses menghapus 1 data duplikat guru')
+            ->assertSuccessful();
+
+        $this->assertEquals(2, Voter::where('category', 'guru')->count());
+
+        // Verify t2 (who voted) was kept, and t1 was deleted
+        $this->assertTrue(Voter::where('id', $t2->id)->exists());
+        $this->assertFalse(Voter::where('id', $t1->id)->exists());
+        $this->assertTrue(Voter::where('id', $t3->id)->exists());
+    }
+
+    public function test_clean_duplicate_teachers_dry_run_does_not_delete(): void
+    {
+        Voter::create([
+            'nisn' => '111',
+            'name' => 'Guru Duplikat',
+            'category' => Voter::CATEGORY_GURU,
+            'class' => 'Guru',
+            'passcode' => 'CODE1',
+            'has_voted' => false,
+        ]);
+
+        Voter::create([
+            'nisn' => null,
+            'name' => 'Guru Duplikat',
+            'category' => Voter::CATEGORY_GURU,
+            'class' => 'Guru',
+            'passcode' => 'CODE2',
+            'has_voted' => false,
+        ]);
+
+        $this->assertEquals(2, Voter::where('category', 'guru')->count());
+
+        $this->artisan('dpt:clean-duplicate-guru', ['--dry-run' => true])
+            ->expectsOutputToContain('[DRY RUN]')
+            ->assertSuccessful();
+
+        $this->assertEquals(2, Voter::where('category', 'guru')->count());
+    }
+
+    public function test_admin_can_trigger_clean_duplicate_teachers_via_route(): void
+    {
+        Voter::create([
+            'nisn' => '9991',
+            'name' => 'Guru Web Clean',
+            'category' => Voter::CATEGORY_GURU,
+            'class' => 'Guru',
+            'passcode' => 'WEB1',
+            'has_voted' => false,
+        ]);
+
+        Voter::create([
+            'nisn' => null,
+            'name' => 'Guru Web Clean',
+            'category' => Voter::CATEGORY_GURU,
+            'class' => 'Guru',
+            'passcode' => 'WEB2',
+            'has_voted' => false,
+        ]);
+
+        $response = $this->actingAs($this->admin)->post(route('admin.api-integration.clean-duplicate-guru'));
+        $response->assertSessionHas('success');
+
+        $this->assertEquals(1, Voter::where('category', 'guru')->where('name', 'Guru Web Clean')->count());
+    }
 }

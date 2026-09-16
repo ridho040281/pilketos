@@ -77,6 +77,7 @@ Route::middleware('admin')->prefix('admin')->name('admin.')->group(function (): 
     Route::post('/api-integration/pull', [ApiIntegrationController::class, 'pullData'])->name('api-integration.pull');
     Route::put('/api-integration/guru', [ApiIntegrationController::class, 'updateGuruSettings'])->name('api-integration.update-guru');
     Route::post('/api-integration/pull-guru', [ApiIntegrationController::class, 'pullGuruData'])->name('api-integration.pull-guru');
+    Route::post('/api-integration/clean-duplicate-guru', [ApiIntegrationController::class, 'cleanDuplicateTeachers'])->name('api-integration.clean-duplicate-guru');
     Route::post('/api-integration/regenerate-key', [ApiIntegrationController::class, 'regeneratePilketosKey'])->name('api-integration.regenerate-key');
 
     // Laporan Pemilihan: Tab 1 Daftar Hadir & Tab 2 Berita Acara Pleno

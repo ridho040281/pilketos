@@ -671,17 +671,33 @@ curl_close($ch);</pre>
                     </p>
                 </div>
 
-                <form action="{{ route('admin.api-integration.pull-guru') }}" method="POST" onsubmit="return confirm('Mulai tarik data guru dari API sekolah? Proses ini akan menambahkan guru ke DPT.')" class="shrink-0">
-                    @csrf
-                    <button 
-                        type="submit" 
-                        @if(empty($setting->guru_api_url)) disabled @endif
-                        class="w-full sm:w-auto px-6 py-3.5 rounded-2xl {{ !empty($setting->guru_api_url) ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-600/30' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }} font-bold text-xs flex items-center justify-center gap-2.5 transition-all"
-                    >
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        <span>Tarik & Sinkronkan Data Guru Sekarang</span>
-                    </button>
-                </form>
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+                    <!-- Tombol Bersihkan Duplikat Guru -->
+                    <form action="{{ route('admin.api-integration.clean-duplicate-guru') }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus data guru yang memiliki nama dobel/duplikat? Sistem akan secara cerdas mempertahankan data yang sudah memilih atau memiliki NIP.')">
+                        @csrf
+                        <button 
+                            type="submit" 
+                            title="Hapus data guru yang berulang/duplikat secara aman"
+                            class="w-full sm:w-auto px-5 py-3.5 rounded-2xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-sm"
+                        >
+                            <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            <span>Bersihkan Duplikat Guru</span>
+                        </button>
+                    </form>
+
+                    <!-- Tombol Tarik API -->
+                    <form action="{{ route('admin.api-integration.pull-guru') }}" method="POST" onsubmit="return confirm('Mulai tarik data guru dari API sekolah? Proses ini akan menambahkan guru ke DPT.')">
+                        @csrf
+                        <button 
+                            type="submit" 
+                            @if(empty($setting->guru_api_url)) disabled @endif
+                            class="w-full sm:w-auto px-6 py-3.5 rounded-2xl {{ !empty($setting->guru_api_url) ? 'bg-indigo-600 hover:bg-indigo-700 text-white shadow-xl shadow-indigo-600/30' : 'bg-slate-200 text-slate-400 cursor-not-allowed' }} font-bold text-xs flex items-center justify-center gap-2.5 transition-all cursor-pointer"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            <span>Tarik & Sinkronkan Data Guru Sekarang</span>
+                        </button>
+                    </form>
+                </div>
             </div>
 
             <!-- Petunjuk Format Data API Guru -->

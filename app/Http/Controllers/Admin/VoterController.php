@@ -381,8 +381,9 @@ class VoterController extends Controller
         });
 
         $layout = in_array((int) $request->input('layout', 20), [8, 10, 20], true) ? (int) $request->input('layout', 20) : 20;
+        $showQr = $request->has('show_qr') ? $request->boolean('show_qr') : (bool) ($setting->show_qr_code ?? true);
 
-        return view('admin.voters.print-cards', compact('voterCards', 'setting', 'class', 'category', 'categories', 'classes', 'layout'));
+        return view('admin.voters.print-cards', compact('voterCards', 'setting', 'class', 'category', 'categories', 'classes', 'layout', 'showQr'));
     }
 
     /**

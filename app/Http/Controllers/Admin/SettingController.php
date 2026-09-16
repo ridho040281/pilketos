@@ -42,12 +42,14 @@ class SettingController extends Controller
             'end_time' => ['nullable', 'date', 'after_or_equal:start_time'],
             'is_active' => ['boolean'],
             'show_quick_count' => ['boolean'],
+            'show_qr_code' => ['boolean'],
             'logo' => ['nullable', 'image', 'mimes:jpeg,png,jpg,svg,webp', 'max:2048'],
             'favicon' => ['nullable', 'file', 'mimes:ico,png,jpg,jpeg,svg,webp', 'max:1024'],
         ]);
 
         $validated['is_active'] = $request->boolean('is_active');
         $validated['show_quick_count'] = $request->boolean('show_quick_count');
+        $validated['show_qr_code'] = $request->boolean('show_qr_code');
 
         if ($request->hasFile('logo')) {
             if ($setting->school_logo && Storage::disk('public')->exists($setting->school_logo)) {

@@ -836,4 +836,77 @@ class VotingFlowTest extends TestCase
         $response->assertSessionHasErrors('nisn');
         $this->assertEquals(1, Voter::where('nisn', '33445566')->count());
     }
+
+    public function test_admin_can_toggle_show_qr_code_setting(): void
+    {
+        $admin = User::create([
+            'name' => 'Admin QR Test',
+            'username' => 'adminqrtest',
+            'email' => 'adminqrtest@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
+
+        $setting = ElectionSetting::current();
+
+        // Default is true
+        $this->assertTrue((bool) ($setting->show_qr_code ?? true));
+
+        // Turn off show_qr_code
+        $response = $this->actingAs($admin)->put(route('admin.settings.update'), [
+            'school_name' => $setting->school_name,
+            'election_title' => $setting->election_title,
+            'academic_year' => $setting->academic_year,
+            'is_active' => true,
+            'show_quick_count' => true,
+            'show_qr_code' => 0,
+        ]);
+
+        $response->assertRedirect(route('admin.settings.edit'));
+        $this->assertFalse($setting->fresh()->show_qr_code);
+
+        // Turn on show_qr_code
+        $response2 = $this->actingAs($admin)->put(route('admin.settings.update'), [
+            'school_name' => $setting->school_name,
+            'election_title' => $setting->election_title,
+            'academic_year' => $setting->academic_year,
+            'is_active' => true,
+            'show_quick_count' => true,
+            'show_qr_code' => 1,
+        ]);
+
+        $response2->assertRedirect(route('admin.settings.edit'));
+        $this->assertTrue($setting->fresh()->show_qr_code);
+    }
+
+    public function test_print_cards_respects_show_qr_code_mode_and_renders_centered_token(): void
+    {
+        $admin = User::create([
+            'name' => 'Admin Print Test',
+            'username' => 'adminprinttest',
+            'email' => 'adminprinttest@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
+
+        Voter::create([
+            'name' => 'Pemilih QR',
+            'class' => 'X-1',
+            'passcode' => 'TOKENQR99',
+            'has_voted' => false,
+        ]);
+
+        // When show_qr=0, QR code is hidden and centered token is shown
+        $responseNoQr = $this->actingAs($admin)->get(route('admin.voters.print-cards', ['show_qr' => 0]));
+        $responseNoQr->assertStatus(200);
+        $responseNoQr->assertSee('TOKENQR99');
+        $responseNoQr->assertSee('Tanpa QR (Token Center)');
+        $responseNoQr->assertDontSee('Scan Bilik');
+
+        // When show_qr=1, QR code is displayed with scan label
+        $responseWithQr = $this->actingAs($admin)->get(route('admin.voters.print-cards', ['show_qr' => 1]));
+        $responseWithQr->assertStatus(200);
+        $responseWithQr->assertSee('TOKENQR99');
+        $responseWithQr->assertSee('Scan Bilik');
+    }
 }

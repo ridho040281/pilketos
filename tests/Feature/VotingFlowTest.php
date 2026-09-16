@@ -614,4 +614,98 @@ class VotingFlowTest extends TestCase
         $response->assertDontSee('Template CSV');
         $response->assertSee('Unduh Template Excel');
     }
+
+    public function test_admin_can_reset_votes_with_password(): void
+    {
+        $admin = User::create([
+            'name' => 'Admin Reset Test',
+            'username' => 'adminreset',
+            'email' => 'adminreset@test.com',
+            'password' => bcrypt('secret123'),
+            'role' => 'admin',
+        ]);
+
+        $candidate = Candidate::first();
+        $voter = Voter::create([
+            'nisn' => '778899',
+            'name' => 'Pemilih Reset',
+            'class' => 'XII',
+            'gender' => 'L',
+            'category' => Voter::CATEGORY_SISWA,
+            'passcode' => 'TOKEN1',
+            'has_voted' => true,
+            'voted_at' => now(),
+        ]);
+
+        Ballot::create([
+            'candidate_id' => $candidate->id,
+            'voter_category' => Voter::CATEGORY_SISWA,
+            'cast_at' => now(),
+        ]);
+
+        $this->assertEquals(1, Ballot::count());
+        $this->assertTrue($voter->fresh()->has_voted);
+
+        $response = $this->actingAs($admin)->post(route('admin.voters.reset-votes'), [
+            'confirm_password' => 'secret123',
+        ]);
+
+        $response->assertSessionHas('success');
+        $this->assertEquals(0, Ballot::count());
+        $this->assertFalse($voter->fresh()->has_voted);
+        $this->assertNull($voter->fresh()->voted_at);
+    }
+
+    public function test_admin_can_reset_votes_with_reset_keyword(): void
+    {
+        $admin = User::create([
+            'name' => 'Admin Reset Keyword',
+            'username' => 'adminresetkw',
+            'email' => 'adminresetkw@test.com',
+            'password' => bcrypt('secret456'),
+            'role' => 'admin',
+        ]);
+
+        $candidate = Candidate::first();
+        Voter::create([
+            'nisn' => '778800',
+            'name' => 'Pemilih Reset 2',
+            'class' => 'XI',
+            'gender' => 'P',
+            'category' => Voter::CATEGORY_SISWA,
+            'passcode' => 'TOKEN2',
+            'has_voted' => true,
+            'voted_at' => now(),
+        ]);
+
+        Ballot::create([
+            'candidate_id' => $candidate->id,
+            'voter_category' => Voter::CATEGORY_SISWA,
+            'cast_at' => now(),
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('admin.voters.reset-votes'), [
+            'confirmation' => 'reset',
+        ]);
+
+        $response->assertSessionHas('success');
+        $this->assertEquals(0, Ballot::count());
+    }
+
+    public function test_settings_page_displays_danger_zone_reset_suara(): void
+    {
+        $admin = User::create([
+            'name' => 'Admin Settings',
+            'username' => 'adminsettings',
+            'email' => 'adminsettings@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.settings.edit'));
+
+        $response->assertStatus(200);
+        $response->assertSee('Zona Bahaya: Reset Seluruh Suara Pemilihan');
+        $response->assertSee('Reset Suara Pemilihan');
+    }
 }

@@ -252,6 +252,31 @@
                 </div>
             </form>
         </div>
+
+        <!-- Zona Bahaya: Reset Suara Pemilihan -->
+        <div class="bg-white rounded-3xl border border-rose-200/80 p-6 sm:p-8 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <div class="flex items-center gap-2.5 text-rose-700 font-bold text-base">
+                        <div class="w-8 h-8 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        </div>
+                        <span>Zona Bahaya: Reset Seluruh Suara Pemilihan</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2 leading-relaxed max-w-2xl">
+                        Tindakan ini akan <strong>menghapus seluruh surat suara di kotak suara</strong> dan mengembalikan status semua pemilih (DPT) menjadi <strong>Belum Memilih</strong>. Gunakan opsi ini saat simulasi/uji coba selesai untuk memulai pemungutan suara resmi dari awal (0 suara).
+                    </p>
+                </div>
+                <button 
+                    type="button" 
+                    @click="showResetModal = true" 
+                    class="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md shadow-rose-600/30 transition-colors shrink-0 cursor-pointer"
+                >
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    Reset Suara Pemilihan
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- ==================== TAB 2: INTEGRASI API SEKOLAH ==================== -->

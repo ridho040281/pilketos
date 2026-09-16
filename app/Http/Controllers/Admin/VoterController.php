@@ -378,6 +378,6 @@ class VoterController extends Controller
             ]);
         });
 
-        return redirect()->route('admin.voters.index')->with('success', 'Seluruh kotak suara dan status hak pilih DPT berhasil di-reset ke awal.');
+        return back()->with('success', 'Seluruh kotak suara dan status hak pilih berhasil di-reset ke awal.');
     }
 }

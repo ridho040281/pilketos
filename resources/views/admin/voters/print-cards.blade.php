@@ -223,7 +223,11 @@
                             <!-- Top Row: Icon + OSIS + Badge -->
                             <div class="flex items-center justify-between border-b border-slate-200 pb-1">
                                 <div class="flex items-center gap-1 min-w-0">
-                                    <span class="w-4 h-4 rounded bg-indigo-600 text-white font-black text-[8px] flex items-center justify-center shrink-0">P</span>
+                                    @if ($setting->getSchoolLogoUrl())
+                                        <img src="{{ $setting->getSchoolLogoUrl() }}" alt="Logo" class="w-5 h-5 object-contain shrink-0">
+                                    @else
+                                        <span class="w-4 h-4 rounded bg-indigo-600 text-white font-black text-[8px] flex items-center justify-center shrink-0">P</span>
+                                    @endif
                                     <div class="leading-none min-w-0">
                                         <span class="text-[7.5px] font-black uppercase text-indigo-700 block truncate">KARTU PEMILIH</span>
                                         <span class="text-[6.5px] font-bold text-slate-700 block truncate">{{ $setting->school_name }}</span>
@@ -289,7 +293,11 @@
                             <!-- Top Row: Icon + OSIS + Badge -->
                             <div class="flex items-center justify-between border-b border-slate-200 pb-1">
                                 <div class="flex items-center gap-1.5 min-w-0">
-                                    <span class="w-5 h-5 rounded-lg bg-indigo-600 text-white font-black text-[10px] flex items-center justify-center shrink-0">P</span>
+                                    @if ($setting->getSchoolLogoUrl())
+                                        <img src="{{ $setting->getSchoolLogoUrl() }}" alt="Logo" class="w-6 h-6 object-contain shrink-0">
+                                    @else
+                                        <span class="w-5 h-5 rounded-lg bg-indigo-600 text-white font-black text-[10px] flex items-center justify-center shrink-0">P</span>
+                                    @endif
                                     <div class="leading-none min-w-0">
                                         <span class="text-[8.5px] font-black uppercase text-indigo-700 block truncate">KARTU PEMILIH OSIS</span>
                                         <span class="text-[8px] font-bold text-slate-700 block truncate">{{ $setting->school_name }}</span>
@@ -390,9 +398,13 @@
                             <!-- Header Kartu -->
                             <div class="flex items-center justify-between border-b border-slate-200 pb-2 mb-2">
                                 <div class="flex items-center space-x-2">
-                                    <div class="w-7 h-7 rounded-lg bg-indigo-600 text-white font-black text-xs flex items-center justify-center">
-                                        P
-                                    </div>
+                                    @if ($setting->getSchoolLogoUrl())
+                                        <img src="{{ $setting->getSchoolLogoUrl() }}" alt="Logo" class="w-8 h-8 object-contain shrink-0">
+                                    @else
+                                        <div class="w-7 h-7 rounded-lg bg-indigo-600 text-white font-black text-xs flex items-center justify-center">
+                                            P
+                                        </div>
+                                    @endif
                                     <div class="leading-tight">
                                         <span class="block text-[9px] font-bold uppercase tracking-wider text-indigo-600">KARTU PEMILIH OSIS</span>
                                         <span class="block text-xs font-bold text-slate-800">{{ $setting->school_name }}</span>

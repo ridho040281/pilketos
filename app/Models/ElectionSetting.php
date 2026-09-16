@@ -104,6 +104,18 @@ class ElectionSetting extends Model
     }
 
     /**
+     * Get the URL for the school logo if available.
+     */
+    public function getSchoolLogoUrl(): ?string
+    {
+        if (! empty($this->school_logo)) {
+            return asset('storage/'.$this->school_logo);
+        }
+
+        return null;
+    }
+
+    /**
      * Get the URL for the favicon, falling back to school logo or default favicon.
      */
     public function getFaviconUrl(): string

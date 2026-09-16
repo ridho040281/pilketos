@@ -11,6 +11,44 @@
     filterCategory: '{{ addslashes(request('category', '')) }}',
     filterClass: '{{ addslashes(request('class', '')) }}',
     filterStatus: '{{ addslashes(request('status', '')) }}',
+    categoryClasses: {{ \Illuminate\Support\Js::from($categoryClasses) }},
+    allClasses: {{ \Illuminate\Support\Js::from($classes) }},
+    init() {
+        const initialClass = '{{ addslashes(request('class', '')) }}';
+        if (initialClass) {
+            this.$nextTick(() => {
+                this.filterClass = initialClass;
+            });
+        }
+    },
+    get availableClasses() {
+        if (this.filterCategory && this.categoryClasses[this.filterCategory]) {
+            return this.categoryClasses[this.filterCategory];
+        }
+        return this.allClasses;
+    },
+    get classPlaceholder() {
+        if (this.filterCategory === 'guru') return 'Semua Mapel';
+        if (this.filterCategory === 'siswa') return 'Semua Kelas';
+        if (this.filterCategory === 'tendik') return 'Semua Unit';
+        return 'Semua Kelas/Mapel';
+    },
+    get printCardsUrl() {
+        const params = new URLSearchParams();
+        if (this.filterCategory) params.set('category', this.filterCategory);
+        if (this.filterClass) params.set('class', this.filterClass);
+        const qs = params.toString();
+        return '{{ route('admin.voters.print-cards') }}' + (qs ? '?' + qs : '');
+    },
+    onCategoryChange() {
+        if (this.filterClass && this.filterCategory) {
+            const allowed = this.categoryClasses[this.filterCategory] || [];
+            if (!allowed.includes(this.filterClass)) {
+                this.filterClass = '';
+            }
+        }
+        this.fetchVoters();
+    },
     fetchVoters() {
         this.isSearching = true;
         const params = new URLSearchParams();
@@ -79,7 +117,7 @@
             </a>
 
             <!-- Button Cetak Kartu -->
-            <a href="{{ route('admin.voters.print-cards', ['class' => request('class'), 'category' => request('category')]) }}" target="_blank" class="inline-flex items-center px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-md shadow-slate-900/30 transition-colors">
+            <a :href="printCardsUrl" href="{{ route('admin.voters.print-cards', ['class' => request('class'), 'category' => request('category')]) }}" target="_blank" class="inline-flex items-center px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-md shadow-slate-900/30 transition-colors">
                 <svg class="w-4 h-4 mr-1.5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                 Cetak Kartu Pemilih
             </a>
@@ -133,7 +171,7 @@
             </div>
 
             <!-- Category Filter -->
-            <select name="category" x-model="filterCategory" @change="fetchVoters()" class="py-2 px-3 rounded-xl border border-slate-300 text-xs focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white font-semibold cursor-pointer">
+            <select name="category" x-model="filterCategory" @change="onCategoryChange()" class="py-2 px-3 rounded-xl border border-slate-300 text-xs focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white font-semibold cursor-pointer">
                 <option value="">Semua Kategori</option>
                 <option value="siswa">🎓 Siswa</option>
                 <option value="guru">👨‍🏫 Guru</option>
@@ -142,10 +180,10 @@
 
             <!-- Class Filter -->
             <select name="class" x-model="filterClass" @change="fetchVoters()" class="py-2 px-3 rounded-xl border border-slate-300 text-xs focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white cursor-pointer">
-                <option value="">Semua Kelas/Mapel</option>
-                @foreach ($classes as $c)
-                    <option value="{{ $c }}">{{ $c }}</option>
-                @endforeach
+                <option value="" x-text="classPlaceholder">Semua Kelas/Mapel</option>
+                <template x-for="c in availableClasses" :key="c">
+                    <option :value="c" x-text="c" :selected="filterClass === c"></option>
+                </template>
             </select>
 
             <!-- Status Filter -->

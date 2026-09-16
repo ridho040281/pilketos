@@ -52,7 +52,21 @@ class VoterController extends Controller
         }
 
         $voters = $query->orderBy('category')->orderBy('class')->orderBy('name')->paginate(25)->withQueryString();
-        $classes = Voter::select('class')->distinct()->orderBy('class')->pluck('class');
+        $classes = Voter::whereNotNull('class')->where('class', '!=', '')->distinct()->orderBy('class')->pluck('class');
+
+        $categoryClasses = [
+            Voter::CATEGORY_SISWA => [],
+            Voter::CATEGORY_GURU => [],
+            Voter::CATEGORY_TENDIK => [],
+        ];
+        foreach (Voter::whereNotNull('class')->where('class', '!=', '')->select('category', 'class')->distinct()->orderBy('class')->get() as $item) {
+            if (isset($categoryClasses[$item->category])) {
+                $categoryClasses[$item->category][] = $item->class;
+            } else {
+                $categoryClasses[$item->category] = [$item->class];
+            }
+        }
+
         $setting = ElectionSetting::current();
 
         $totalCount = Voter::count();
@@ -67,6 +81,7 @@ class VoterController extends Controller
         return view('admin.voters.index', compact(
             'voters',
             'classes',
+            'categoryClasses',
             'setting',
             'totalCount',
             'votedCount',
@@ -346,18 +361,30 @@ class VoterController extends Controller
     {
         $query = Voter::query();
 
-        if ($category = $request->input('category')) {
+        $category = $request->input('category');
+        $class = $request->input('class');
+
+        $classesQuery = Voter::whereNotNull('class')->where('class', '!=', '');
+        if ($category) {
+            $classesQuery->where('category', $category);
+        }
+        $classes = $classesQuery->distinct()->orderBy('class')->pluck('class');
+
+        if ($category && $class && ! $classes->contains($class)) {
+            $class = null;
+        }
+
+        if ($category) {
             $query->where('category', $category);
         }
 
-        if ($class = $request->input('class')) {
+        if ($class) {
             $query->where('class', $class);
         }
 
         $voters = $query->orderBy('category')->orderBy('class')->orderBy('name')->get();
         $setting = ElectionSetting::current();
         $categories = Voter::CATEGORIES;
-        $classes = Voter::select('class')->distinct()->orderBy('class')->pluck('class');
 
         // QR Code options (chillerlan/php-qrcode v6)
         $options = new QROptions([

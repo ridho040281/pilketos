@@ -89,6 +89,19 @@ class BeritaAcaraController extends Controller
             ->orderBy('class')
             ->pluck('class');
 
+        $categoryClasses = [
+            Voter::CATEGORY_SISWA => [],
+            Voter::CATEGORY_GURU => [],
+            Voter::CATEGORY_TENDIK => [],
+        ];
+        foreach (Voter::whereNotNull('class')->where('class', '!=', '')->select('category', 'class')->distinct()->orderBy('class')->get() as $item) {
+            if (isset($categoryClasses[$item->category])) {
+                $categoryClasses[$item->category][] = $item->class;
+            } else {
+                $categoryClasses[$item->category] = [$item->class];
+            }
+        }
+
         $categories = Voter::CATEGORIES;
         $activeTab = $request->input('tab', 'daftar-hadir');
 
@@ -104,6 +117,7 @@ class BeritaAcaraController extends Controller
             'classesStats',
             'attendees',
             'classes',
+            'categoryClasses',
             'categories',
             'activeTab'
         ));

@@ -175,16 +175,16 @@
                 </select>
 
                 <!-- Filter Kategori -->
-                <select name="category" onchange="this.form.submit()" class="py-1.5 px-3 rounded-xl border border-slate-300 text-xs font-semibold bg-slate-50 text-slate-700 cursor-pointer">
+                <select name="category" onchange="this.form.class.value=''; this.form.submit()" class="py-1.5 px-3 rounded-xl border border-slate-300 text-xs font-semibold bg-slate-50 text-slate-700 cursor-pointer">
                     <option value="">Semua Kategori</option>
                     <option value="siswa" {{ request('category') == 'siswa' ? 'selected' : '' }}>🎓 Siswa</option>
                     <option value="guru" {{ request('category') == 'guru' ? 'selected' : '' }}>👨‍🏫 Guru</option>
                     <option value="tendik" {{ request('category') == 'tendik' ? 'selected' : '' }}>💼 Tendik</option>
                 </select>
 
-                <!-- Filter Kelas -->
+                <!-- Filter Kelas / Mapel -->
                 <select name="class" onchange="this.form.submit()" class="py-1.5 px-3 rounded-xl border border-slate-300 text-xs font-semibold bg-slate-50 text-slate-700 cursor-pointer">
-                    <option value="">Semua Kelas/Mapel</option>
+                    <option value="">{{ request('category') === 'guru' ? 'Semua Mapel' : (request('category') === 'siswa' ? 'Semua Kelas' : (request('category') === 'tendik' ? 'Semua Unit' : 'Semua Kelas/Mapel')) }}</option>
                     @foreach ($classes as $c)
                         <option value="{{ $c }}" {{ request('class') == $c ? 'selected' : '' }}>{{ $c }}</option>
                     @endforeach

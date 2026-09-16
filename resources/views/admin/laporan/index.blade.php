@@ -11,6 +11,37 @@
     filterStatus: '{{ addslashes(request('status', 'all')) }}',
     filterCategory: '{{ addslashes(request('category', '')) }}',
     filterClass: '{{ addslashes(request('class', '')) }}',
+    categoryClasses: {{ \Illuminate\Support\Js::from($categoryClasses) }},
+    allClasses: {{ \Illuminate\Support\Js::from($classes) }},
+    init() {
+        const initialClass = '{{ addslashes(request('class', '')) }}';
+        if (initialClass) {
+            this.$nextTick(() => {
+                this.filterClass = initialClass;
+            });
+        }
+    },
+    get availableClasses() {
+        if (this.filterCategory && this.categoryClasses[this.filterCategory]) {
+            return this.categoryClasses[this.filterCategory];
+        }
+        return this.allClasses;
+    },
+    get classPlaceholder() {
+        if (this.filterCategory === 'guru') return 'Semua Mapel';
+        if (this.filterCategory === 'siswa') return 'Semua Kelas';
+        if (this.filterCategory === 'tendik') return 'Semua Unit';
+        return 'Semua Kelas / Mapel';
+    },
+    onCategoryChange() {
+        if (this.filterClass && this.filterCategory) {
+            const allowed = this.categoryClasses[this.filterCategory] || [];
+            if (!allowed.includes(this.filterClass)) {
+                this.filterClass = '';
+            }
+        }
+        this.fetchLaporan();
+    },
     cetakUrl: '{{ route('admin.laporan.cetak-daftar-hadir', request()->query()) }}',
     exportUrl: '{{ route('admin.laporan.export-daftar-hadir', request()->query()) }}',
     setTab(tab) {
@@ -205,7 +236,7 @@
 
                     <!-- Auto Filter Kategori (Siswa, Guru, Tendik) -->
                     <div>
-                        <select name="category" x-model="filterCategory" @change="fetchLaporan()" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50/50 text-slate-700 cursor-pointer font-medium">
+                        <select name="category" x-model="filterCategory" @change="onCategoryChange()" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50/50 text-slate-700 cursor-pointer font-medium">
                             <option value="">Semua Kategori</option>
                             <option value="siswa">🎓 Siswa</option>
                             <option value="guru">👨‍🏫 Guru</option>
@@ -213,13 +244,13 @@
                         </select>
                     </div>
 
-                    <!-- Auto Filter Kelas -->
+                    <!-- Auto Filter Kelas / Mapel -->
                     <div>
                         <select name="class" x-model="filterClass" @change="fetchLaporan()" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50/50 text-slate-700 cursor-pointer">
-                            <option value="">Semua Kelas / Mapel</option>
-                            @foreach ($classes as $c)
-                                <option value="{{ $c }}">{{ $c }}</option>
-                            @endforeach
+                            <option value="" x-text="classPlaceholder">Semua Kelas / Mapel</option>
+                            <template x-for="c in availableClasses" :key="c">
+                                <option :value="c" x-text="c" :selected="filterClass === c"></option>
+                            </template>
                         </select>
                     </div>
                 </div>

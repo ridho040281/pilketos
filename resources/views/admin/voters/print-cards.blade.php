@@ -250,7 +250,7 @@
                                 <div class="flex items-center justify-between gap-1 pt-1 border-t border-slate-100">
                                     <div class="min-w-0 flex-1">
                                         <span class="text-[6px] font-bold uppercase text-slate-400 block tracking-tighter">TOKEN BILIK:</span>
-                                        <div class="px-1.5 py-0.5 mt-0.5 rounded bg-slate-900 text-yellow-400 font-mono font-black text-[11px] tracking-wider text-center border border-slate-700 shadow-sm leading-tight inline-block">
+                                        <div class="px-2 py-0.5 mt-0.5 rounded bg-slate-100 text-slate-900 font-mono font-black text-[11px] tracking-wider text-center border border-slate-300 leading-tight inline-block shadow-xs">
                                             {{ $voter->passcode }}
                                         </div>
                                         <span class="text-[5.5px] text-slate-400 block mt-0.5 leading-none">*1x pemilihan</span>
@@ -268,10 +268,10 @@
                                     </div>
                                 </div>
                             @else
-                                <!-- Bottom Row: Token Center & Enlarged -->
-                                <div class="flex flex-col items-center justify-center text-center pt-1.5 border-t border-slate-100 my-auto">
-                                    <span class="text-[7px] font-bold uppercase text-slate-400 block tracking-wider mb-0.5">KODE TOKEN BILIK:</span>
-                                    <div class="w-full py-1.5 px-2 rounded-lg bg-slate-900 text-yellow-400 font-mono font-black text-sm tracking-widest text-center border border-slate-700 shadow-sm leading-none">
+                                <!-- Bottom Row: Token Center & Enlarged (Overlay Box) -->
+                                <div class="flex flex-col items-center justify-center text-center pt-1 border-t border-slate-100 mt-1">
+                                    <span class="text-[7px] font-bold uppercase text-slate-500 block tracking-wider mb-1">KODE TOKEN BILIK:</span>
+                                    <div class="w-full py-1 px-2 rounded-lg bg-slate-100 border border-slate-300 text-slate-900 font-mono font-black text-sm tracking-[0.2em] text-center shadow-xs leading-none">
                                         {{ $voter->passcode }}
                                     </div>
                                     <span class="text-[6px] text-slate-400 block mt-1 leading-none font-medium">*Gunakan token untuk login bilik</span>
@@ -327,7 +327,7 @@
                                         </div>
                                         <div class="pt-1">
                                             <span class="text-[7px] uppercase font-bold text-slate-500 block">KODE TOKEN BILIK:</span>
-                                            <div class="inline-block px-2.5 py-0.5 rounded bg-slate-900 text-yellow-400 font-mono font-black text-xs tracking-wider border border-slate-700 shadow-sm">
+                                            <div class="inline-block px-2.5 py-1 rounded-lg bg-slate-100 text-slate-900 font-mono font-black text-xs tracking-wider border border-slate-300 shadow-xs">
                                                 {{ $voter->passcode }}
                                             </div>
                                         </div>
@@ -366,8 +366,8 @@
                                         @endif
                                     </div>
                                     <div class="mt-1.5 py-1 border-t border-slate-100 flex flex-col items-center justify-center">
-                                        <span class="text-[7.5px] uppercase font-bold text-slate-500 block mb-0.5">KODE TOKEN BILIK:</span>
-                                        <div class="inline-block px-6 py-1 rounded-xl bg-slate-900 text-yellow-400 font-mono font-black text-base tracking-widest text-center border-2 border-slate-700 shadow-md">
+                                        <span class="text-[7.5px] uppercase font-bold text-slate-500 block mb-1">KODE TOKEN BILIK:</span>
+                                        <div class="inline-block px-6 py-1 rounded-xl bg-slate-100 text-slate-900 font-mono font-black text-base tracking-widest text-center border-2 border-slate-300 shadow-xs">
                                             {{ $voter->passcode }}
                                         </div>
                                     </div>
@@ -437,10 +437,10 @@
                                             @endif
                                         </div>
 
-                                        <!-- Big Passcode Box -->
+                                        <!-- Passcode Box -->
                                         <div class="pt-1">
                                             <span class="text-[8px] uppercase tracking-wider font-bold text-slate-500 block">Kode Token Bilik:</span>
-                                            <div class="inline-block px-3 py-1 rounded-lg bg-slate-900 text-yellow-400 font-mono font-black text-sm tracking-widest border border-slate-700">
+                                            <div class="inline-block px-3 py-1 rounded-xl bg-slate-100 text-slate-900 font-mono font-black text-sm tracking-widest border border-slate-300 shadow-xs">
                                                 {{ $voter->passcode }}
                                             </div>
                                         </div>
@@ -489,7 +489,7 @@
                                     <!-- Centered Large Passcode Box -->
                                     <div class="pt-2 flex flex-col items-center justify-center">
                                         <span class="text-[9px] uppercase tracking-wider font-bold text-slate-500 block mb-1">Kode Token Bilik Suara:</span>
-                                        <div class="inline-block px-8 py-2.5 rounded-2xl bg-slate-900 text-yellow-400 font-mono font-black text-xl tracking-[0.25em] text-center border-2 border-slate-700 shadow-md">
+                                        <div class="inline-block px-8 py-2 rounded-2xl bg-slate-100 text-slate-900 font-mono font-black text-xl tracking-[0.25em] text-center border-2 border-slate-300 shadow-xs">
                                             {{ $voter->passcode }}
                                         </div>
                                     </div>

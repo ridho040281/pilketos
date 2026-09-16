@@ -380,7 +380,9 @@ class VoterController extends Controller
             return $voter;
         });
 
-        return view('admin.voters.print-cards', compact('voterCards', 'setting', 'class', 'category', 'categories', 'classes'));
+        $layout = in_array((int) $request->input('layout', 20), [8, 10, 20], true) ? (int) $request->input('layout', 20) : 20;
+
+        return view('admin.voters.print-cards', compact('voterCards', 'setting', 'class', 'category', 'categories', 'classes', 'layout'));
     }
 
     /**

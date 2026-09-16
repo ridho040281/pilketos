@@ -302,8 +302,8 @@
                             <th class="py-3 px-4 w-12 text-center">No</th>
                             <th class="py-3 px-4">NISN / NIP</th>
                             <th class="py-3 px-4">Nama Lengkap</th>
-                            <th class="py-3 px-4 text-center">Kategori</th>
-                            <th class="py-3 px-4 text-center">Kelas / Unit</th>
+                            <th class="py-3 px-4 text-center whitespace-nowrap">Kategori</th>
+                            <th class="py-3 px-4 text-center whitespace-nowrap">Kelas / Unit</th>
                             <th class="py-3 px-4 text-center">L/P</th>
                             <th class="py-3 px-4 text-center">Status</th>
                         </tr>
@@ -320,7 +320,7 @@
                                 <td class="py-3 px-4 font-bold text-slate-800">
                                     {{ $voter->name }}
                                 </td>
-                                <td class="py-3 px-4 text-center">
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
                                     @if ($voter->category === 'guru')
                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200">Guru</span>
                                     @elseif ($voter->category === 'tendik')
@@ -329,8 +329,8 @@
                                         <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200">Siswa</span>
                                     @endif
                                 </td>
-                                <td class="py-3 px-4 text-center">
-                                    <span class="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700">
+                                <td class="py-3 px-4 text-center whitespace-nowrap">
+                                    <span class="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 whitespace-nowrap inline-block">
                                         {{ $voter->class ?: '-' }}
                                     </span>
                                 </td>

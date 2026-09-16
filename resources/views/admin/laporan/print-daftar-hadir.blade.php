@@ -86,25 +86,25 @@
             <table class="w-full text-xs border border-slate-300">
                 <thead class="bg-slate-100 font-bold uppercase text-slate-700 text-center">
                     <tr>
-                        <th class="p-2 border border-slate-300 w-10">No</th>
-                        <th class="p-2 border border-slate-300 w-28 text-left">NISN / NIP</th>
+                        <th class="p-2 border border-slate-300 w-10 text-center">No</th>
+                        <th class="p-2 border border-slate-300 w-32 text-left whitespace-nowrap">NISN / NIP</th>
                         <th class="p-2 border border-slate-300 text-left">Nama Lengkap</th>
-                        <th class="p-2 border border-slate-300 w-20">Kategori</th>
-                        <th class="p-2 border border-slate-300 w-24">Kelas/Unit</th>
-                        <th class="p-2 border border-slate-300 w-12">L/P</th>
-                        <th class="p-2 border border-slate-300 w-36">Tanda Tangan / Paraf</th>
+                        <th class="p-2 border border-slate-300 w-20 text-center whitespace-nowrap">Kategori</th>
+                        <th class="p-2 border border-slate-300 min-w-[150px] w-44 text-center whitespace-nowrap">Kelas/Unit</th>
+                        <th class="p-2 border border-slate-300 w-10 text-center">L/P</th>
+                        <th class="p-2 border border-slate-300 w-36 text-center whitespace-nowrap">Tanda Tangan / Paraf</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200">
                     @forelse ($attendees as $index => $voter)
                         <tr>
                             <td class="p-2 border border-slate-300 text-center font-bold">{{ $index + 1 }}</td>
-                            <td class="p-2 border border-slate-300 font-mono text-[11px]">{{ $voter->nisn ?: '-' }}</td>
+                            <td class="p-2 border border-slate-300 font-mono text-[11px] whitespace-nowrap">{{ $voter->nisn ?: '-' }}</td>
                             <td class="p-2 border border-slate-300 font-semibold">{{ $voter->name }}</td>
-                            <td class="p-2 border border-slate-300 text-center capitalize text-[11px]">{{ $voter->category_label }}</td>
-                            <td class="p-2 border border-slate-300 text-center text-[11px]">{{ $voter->class ?: '-' }}</td>
+                            <td class="p-2 border border-slate-300 text-center capitalize text-[11px] whitespace-nowrap">{{ $voter->category_label }}</td>
+                            <td class="p-2 border border-slate-300 text-center text-[11px] whitespace-nowrap px-3">{{ $voter->class ?: '-' }}</td>
                             <td class="p-2 border border-slate-300 text-center font-bold">{{ $voter->gender ?: '-' }}</td>
-                            <td class="p-2 border border-slate-300 text-left text-[10px] text-slate-400">
+                            <td class="p-2 border border-slate-300 text-left text-[10px] text-slate-400 whitespace-nowrap">
                                 {{ $index + 1 }}. ......................
                             </td>
                         </tr>

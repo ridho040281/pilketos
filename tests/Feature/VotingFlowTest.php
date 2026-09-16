@@ -708,4 +708,132 @@ class VotingFlowTest extends TestCase
         $response->assertSee('Zona Bahaya: Reset Seluruh Suara Pemilihan');
         $response->assertSee('Reset Suara Pemilihan');
     }
+
+    public function test_used_token_cannot_be_used_again_to_login(): void
+    {
+        Voter::create([
+            'nisn' => '11223344',
+            'name' => 'Siswa Sudah Memilih',
+            'class' => 'XII-IPA-1',
+            'gender' => 'L',
+            'category' => Voter::CATEGORY_SISWA,
+            'passcode' => 'SUDAH1',
+            'has_voted' => true,
+            'voted_at' => now(),
+        ]);
+
+        $response = $this->post(route('bilik.masuk'), [
+            'passcode' => 'SUDAH1',
+        ]);
+
+        $response->assertSessionHas('error');
+        $this->assertStringContainsString('tidak bisa digunakan lagi', session('error'));
+        $this->assertFalse(session()->has('voter_id'));
+    }
+
+    public function test_voter_with_used_token_cannot_access_suara_room(): void
+    {
+        $voter = Voter::create([
+            'nisn' => '11223355',
+            'name' => 'Siswa Paksa Bilik',
+            'class' => 'XII-IPA-2',
+            'gender' => 'P',
+            'category' => Voter::CATEGORY_SISWA,
+            'passcode' => 'SUDAH2',
+            'has_voted' => true,
+            'voted_at' => now(),
+        ]);
+
+        $response = $this->withSession([
+            'voter_id' => $voter->id,
+            'voter_name' => $voter->name,
+            'voter_class' => $voter->class,
+        ])->get(route('bilik.suara'));
+
+        $response->assertRedirect(route('bilik.login'));
+        $response->assertSessionHas('error');
+        $this->assertStringContainsString('tidak bisa digunakan lagi', session('error'));
+    }
+
+    public function test_import_skips_duplicate_nisn_and_does_not_reimport(): void
+    {
+        $admin = User::create([
+            'name' => 'Admin Test Duplicate',
+            'username' => 'admindup',
+            'email' => 'admindup@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
+
+        // Pre-existing voter with NISN
+        Voter::create([
+            'nisn' => '55667788',
+            'name' => 'Siswa Sudah Ada',
+            'class' => 'X-A',
+            'gender' => 'L',
+            'category' => Voter::CATEGORY_SISWA,
+            'passcode' => 'EXIST1',
+            'has_voted' => false,
+        ]);
+
+        $this->assertEquals(1, Voter::count());
+
+        // Import file containing:
+        // 1. Pre-existing NISN (55667788) -> must be skipped!
+        // 2. New NISN (99001122) -> must be imported!
+        // 3. Duplicate row of new NISN (99001122) -> must be skipped!
+        $data = [
+            ['Kategori', 'NISN', 'Nama Lengkap', 'Kelas/Unit', 'JK'],
+            ['siswa', '55667788', 'Siswa Sudah Ada (Dobel)', 'X-A', 'L'],
+            ['siswa', '99001122', 'Siswa Baru Unik', 'X-B', 'P'],
+            ['siswa', '99001122', 'Siswa Baru Unik (Duplikat File)', 'X-B', 'P'],
+        ];
+
+        $xlsxContent = (string) SimpleXLSXGen::fromArray($data);
+        $file = UploadedFile::fake()->createWithContent('dpt_duplicate_test.xlsx', $xlsxContent);
+
+        $response = $this->actingAs($admin)->post(route('admin.voters.import'), [
+            'file' => $file,
+        ]);
+
+        $response->assertSessionHas('success');
+        $this->assertStringContainsString('dilewati karena NISN/NIP sudah terdaftar', session('success'));
+
+        // Total voters must be 2 (the pre-existing one and the one new unique one)
+        $this->assertEquals(2, Voter::count());
+        $this->assertEquals(1, Voter::where('nisn', '55667788')->count());
+        $this->assertEquals(1, Voter::where('nisn', '99001122')->count());
+    }
+
+    public function test_manual_voter_store_rejects_duplicate_nisn(): void
+    {
+        $admin = User::create([
+            'name' => 'Admin Store Dup',
+            'username' => 'adminstoredup',
+            'email' => 'adminstoredup@test.com',
+            'password' => bcrypt('password'),
+            'role' => 'admin',
+        ]);
+
+        Voter::create([
+            'nisn' => '33445566',
+            'name' => 'Voter Awal',
+            'class' => 'XI-1',
+            'gender' => 'L',
+            'category' => Voter::CATEGORY_SISWA,
+            'passcode' => 'TOKENA',
+            'has_voted' => false,
+        ]);
+
+        $response = $this->actingAs($admin)->post(route('admin.voters.store'), [
+            'category' => 'siswa',
+            'nisn' => '33445566',
+            'name' => 'Voter Baru Dengan NISN Sama',
+            'class' => 'XI-2',
+            'gender' => 'L',
+        ]);
+
+        $response->assertSessionHasErrors('nisn');
+        $this->assertEquals(1, Voter::where('nisn', '33445566')->count());
+    }
 }

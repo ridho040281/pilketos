@@ -48,7 +48,7 @@ class BilikController extends Controller
         }
 
         if ($voter->has_voted) {
-            return back()->withInput()->with('error', 'Token ini sudah digunakan untuk memilih pada '.($voter->voted_at ? $voter->voted_at->format('H:i').' WIB' : 'sesi sebelumnya').'. Setiap pemilih hanya memiliki 1 hak suara.');
+            return back()->withInput()->with('error', 'Token ini sudah digunakan untuk memilih'.($voter->voted_at ? ' pada '.$voter->voted_at->format('d/m/Y H:i').' WIB' : '').' dan tidak bisa digunakan lagi. Setiap pemilih hanya memiliki 1 hak suara.');
         }
 
         // Store voter session
@@ -76,6 +76,18 @@ class BilikController extends Controller
             return redirect()->route('bilik.login')->with('error', 'Pemilihan telah ditutup.');
         }
 
+        $voterId = $request->session()->get('voter_id');
+        if (! $voterId) {
+            return redirect()->route('bilik.login')->with('error', 'Silakan masukkan kode token terlebih dahulu.');
+        }
+
+        $voter = Voter::find($voterId);
+        if (! $voter || $voter->has_voted) {
+            $request->session()->forget(['voter_id', 'voter_name', 'voter_class', 'voter_category', 'voter_category_label']);
+
+            return redirect()->route('bilik.login')->with('error', 'Token ini sudah digunakan untuk memilih dan tidak bisa digunakan lagi.');
+        }
+
         $candidates = Candidate::orderBy('candidate_number', 'asc')->get();
         $voterName = $request->session()->get('voter_name');
         $voterClass = $request->session()->get('voter_class');
@@ -93,7 +105,7 @@ class BilikController extends Controller
         $voterId = $request->session()->get('voter_id');
 
         if (! $voterId) {
-            return redirect()->route('bilik.login')->with('error', 'Sesi bilik suara Anda telah berakhir.');
+            return redirect()->route('bilik.login')->with('error', 'Sesi bilik suara Anda telah berakhir. Silakan masukkan token kembali.');
         }
 
         $validated = $request->validate([
@@ -106,7 +118,7 @@ class BilikController extends Controller
                 $voter = Voter::where('id', $voterId)->lockForUpdate()->first();
 
                 if (! $voter || $voter->has_voted) {
-                    throw new Exception('Hak suara untuk token ini sudah digunakan.');
+                    throw new Exception('Token ini sudah digunakan untuk memilih dan tidak bisa digunakan lagi.');
                 }
 
                 // 1. Mark voter as voted (token invalidated)

@@ -25,9 +25,9 @@ class EnsureVoterSession
         $voter = Voter::find($voterId);
 
         if (! $voter || $voter->has_voted) {
-            $request->session()->forget(['voter_id', 'voter_name', 'voter_class']);
+            $request->session()->forget(['voter_id', 'voter_name', 'voter_class', 'voter_category', 'voter_category_label']);
 
-            return redirect()->route('bilik.login')->with('error', 'Hak suara untuk token ini telah digunakan atau tidak valid.');
+            return redirect()->route('bilik.login')->with('error', 'Token ini sudah digunakan untuk memilih dan tidak bisa digunakan lagi.');
         }
 
         return $next($request);

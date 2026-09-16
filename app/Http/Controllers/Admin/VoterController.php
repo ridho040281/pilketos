@@ -15,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class VoterController extends Controller
@@ -94,10 +95,12 @@ class VoterController extends Controller
     {
         $validated = $request->validate([
             'category' => ['required', 'in:siswa,guru,tendik'],
-            'nisn' => ['nullable', 'string', 'max:30'],
+            'nisn' => ['nullable', 'string', 'max:30', 'unique:voters,nisn'],
             'name' => ['required', 'string', 'max:255'],
             'class' => ['required', 'string', 'max:50'],
             'gender' => ['nullable', 'in:L,P'],
+        ], [
+            'nisn.unique' => 'NISN/NIP ini sudah terdaftar dalam DPT.',
         ]);
 
         $validated['passcode'] = Voter::generatePasscode();
@@ -125,10 +128,12 @@ class VoterController extends Controller
     {
         $validated = $request->validate([
             'category' => ['required', 'in:siswa,guru,tendik'],
-            'nisn' => ['nullable', 'string', 'max:30'],
+            'nisn' => ['nullable', 'string', 'max:30', Rule::unique('voters', 'nisn')->ignore($voter->id)],
             'name' => ['required', 'string', 'max:255'],
             'class' => ['required', 'string', 'max:50'],
             'gender' => ['nullable', 'in:L,P'],
+        ], [
+            'nisn.unique' => 'NISN/NIP ini sudah terdaftar pada pemilih lain dalam DPT.',
         ]);
 
         $voter->update($validated);
@@ -191,6 +196,15 @@ class VoterController extends Controller
             return back()->with('error', 'File Excel/CSV kosong atau data tidak dapat dibaca.');
         }
 
+        $existingNisns = Voter::whereNotNull('nisn')
+            ->where('nisn', '!=', '')
+            ->pluck('nisn')
+            ->map(fn ($n) => trim((string) $n))
+            ->flip()
+            ->toArray();
+
+        $seenInFileNisns = [];
+        $duplicateCount = 0;
         $rows = [];
         $headerSkipped = false;
 
@@ -215,20 +229,30 @@ class VoterController extends Controller
             // If 4 columns: NISN, Nama, Kelas, JK (default kategori: siswa)
             if (count($rowValues) >= 5) {
                 $rawCategory = strtolower($rowValues[0] ?? '');
-                $nisn = ! empty($rowValues[1]) ? $rowValues[1] : null;
-                $name = ! empty($rowValues[2]) ? $rowValues[2] : '';
-                $class = ! empty($rowValues[3]) ? $rowValues[3] : 'Umum';
-                $gender = ! empty($rowValues[4]) ? strtoupper($rowValues[4]) : null;
+                $nisn = ! empty($rowValues[1]) ? trim((string) $rowValues[1]) : null;
+                $name = ! empty($rowValues[2]) ? trim((string) $rowValues[2]) : '';
+                $class = ! empty($rowValues[3]) ? trim((string) $rowValues[3]) : 'Umum';
+                $gender = ! empty($rowValues[4]) ? strtoupper(trim((string) $rowValues[4])) : null;
             } else {
                 $rawCategory = 'siswa';
-                $nisn = ! empty($rowValues[0]) ? $rowValues[0] : null;
-                $name = ! empty($rowValues[1]) ? $rowValues[1] : '';
-                $class = ! empty($rowValues[2]) ? $rowValues[2] : 'Umum';
-                $gender = ! empty($rowValues[3]) ? strtoupper($rowValues[3]) : null;
+                $nisn = ! empty($rowValues[0]) ? trim((string) $rowValues[0]) : null;
+                $name = ! empty($rowValues[1]) ? trim((string) $rowValues[1]) : '';
+                $class = ! empty($rowValues[2]) ? trim((string) $rowValues[2]) : 'Umum';
+                $gender = ! empty($rowValues[3]) ? strtoupper(trim((string) $rowValues[3])) : null;
             }
 
             if (empty($name)) {
                 continue;
+            }
+
+            // Validasi: Jika NIP/NISN sama, tidak bisa diimpor lagi
+            if ($nisn !== null && $nisn !== '') {
+                if (isset($existingNisns[$nisn]) || isset($seenInFileNisns[$nisn])) {
+                    $duplicateCount++;
+
+                    continue;
+                }
+                $seenInFileNisns[$nisn] = true;
             }
 
             if (in_array($rawCategory, ['guru', 'pendidik', 'teacher'])) {
@@ -257,6 +281,10 @@ class VoterController extends Controller
         }
 
         if (empty($rows)) {
+            if ($duplicateCount > 0) {
+                return back()->with('error', "Tidak ada data baru yang diimpor. Sebanyak {$duplicateCount} baris data dilewati karena NISN/NIP sudah terdaftar di DPT atau dobel dalam file.");
+            }
+
             return back()->with('error', 'Tidak ada data pemilih yang valid ditemukan dalam file.');
         }
 
@@ -267,8 +295,12 @@ class VoterController extends Controller
             }
         });
 
-        return redirect()->route('admin.voters.index')
-            ->with('success', 'Berhasil mengimpor '.count($rows).' data pemilih (DPT) beserta generate token unik.');
+        $message = 'Berhasil mengimpor '.count($rows).' data pemilih baru (DPT) beserta generate token unik.';
+        if ($duplicateCount > 0) {
+            $message .= " Sebanyak {$duplicateCount} data dilewati karena NISN/NIP sudah terdaftar sebelumnya.";
+        }
+
+        return redirect()->route('admin.voters.index')->with('success', $message);
     }
 
     /**

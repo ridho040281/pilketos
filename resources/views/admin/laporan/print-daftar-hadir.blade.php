@@ -90,7 +90,7 @@
                         <th class="p-2 border border-slate-300 w-32 text-left whitespace-nowrap">NISN / NIP</th>
                         <th class="p-2 border border-slate-300 text-left">Nama Lengkap</th>
                         <th class="p-2 border border-slate-300 w-20 text-center whitespace-nowrap">Kategori</th>
-                        <th class="p-2 border border-slate-300 min-w-[150px] w-44 text-center whitespace-nowrap">Kelas/Unit</th>
+                        <th class="p-2 border border-slate-300 min-w-[150px] w-44 text-center whitespace-nowrap">Kelas/Mapel</th>
                         <th class="p-2 border border-slate-300 w-10 text-center">L/P</th>
                         <th class="p-2 border border-slate-300 w-36 text-center whitespace-nowrap">Tanda Tangan / Paraf</th>
                     </tr>

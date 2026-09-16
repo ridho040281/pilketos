@@ -216,7 +216,7 @@
                     <!-- Auto Filter Kelas -->
                     <div>
                         <select name="class" x-model="filterClass" @change="fetchLaporan()" class="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-slate-50/50 text-slate-700 cursor-pointer">
-                            <option value="">Semua Kelas / Unit</option>
+                            <option value="">Semua Kelas / Mapel</option>
                             @foreach ($classes as $c)
                                 <option value="{{ $c }}">{{ $c }}</option>
                             @endforeach
@@ -303,7 +303,7 @@
                             <th class="py-3 px-4">NISN / NIP</th>
                             <th class="py-3 px-4">Nama Lengkap</th>
                             <th class="py-3 px-4 text-center whitespace-nowrap">Kategori</th>
-                            <th class="py-3 px-4 text-center whitespace-nowrap">Kelas / Unit</th>
+                            <th class="py-3 px-4 text-center whitespace-nowrap">Kelas / Mapel</th>
                             <th class="py-3 px-4 text-center">L/P</th>
                             <th class="py-3 px-4 text-center">Status</th>
                         </tr>

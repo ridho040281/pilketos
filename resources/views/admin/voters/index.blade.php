@@ -142,7 +142,7 @@
 
             <!-- Class Filter -->
             <select name="class" x-model="filterClass" @change="fetchVoters()" class="py-2 px-3 rounded-xl border border-slate-300 text-xs focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white cursor-pointer">
-                <option value="">Semua Kelas/Unit</option>
+                <option value="">Semua Kelas/Mapel</option>
                 @foreach ($classes as $c)
                     <option value="{{ $c }}">{{ $c }}</option>
                 @endforeach
@@ -212,7 +212,7 @@
                         <th class="px-4 py-3.5">NISN / NIP</th>
                         <th class="px-4 py-3.5">Nama Pemilih</th>
                         <th class="px-4 py-3.5">Kategori</th>
-                        <th class="px-4 py-3.5">Kelas / Unit Kerja</th>
+                        <th class="px-4 py-3.5">Kelas / Mapel</th>
                         <th class="px-4 py-3.5">L/P</th>
                         <th class="px-4 py-3.5">Kode Token (Passcode)</th>
                         <th class="px-4 py-3.5">Status Hak Pilih</th>

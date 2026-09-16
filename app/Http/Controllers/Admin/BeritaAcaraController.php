@@ -196,7 +196,7 @@ class BeritaAcaraController extends Controller
             ->get();
 
         $rows = [
-            ['No', 'NISN / NIP', 'Nama Lengkap', 'Kategori', 'Kelas / Unit', 'Jenis Kelamin (L/P)', 'Status Hak Pilih', 'Waktu Coblos / Hadir'],
+            ['No', 'NISN / NIP', 'Nama Lengkap', 'Kategori', 'Kelas / Mapel', 'Jenis Kelamin (L/P)', 'Status Hak Pilih', 'Waktu Coblos / Hadir'],
         ];
 
         $i = 1;

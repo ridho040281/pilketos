@@ -28,7 +28,7 @@
             <p class="text-xs text-slate-500">
                 Total kartu: <strong>{{ count($voterCards) }}</strong> kartu siap cetak & potong
                 @if($category) &bull; Kategori: <strong class="capitalize">{{ $categories[$category] ?? $category }}</strong> @endif
-                @if($class) &bull; Kelas/Unit: <strong>{{ $class }}</strong> @endif
+                @if($class) &bull; Kelas/Mapel: <strong>{{ $class }}</strong> @endif
             </p>
         </div>
 
@@ -44,7 +44,7 @@
 
                 <!-- Filter Kelas -->
                 <select name="class" onchange="this.form.submit()" class="py-1.5 px-3 rounded-xl border border-slate-300 text-xs font-semibold bg-slate-50 text-slate-700">
-                    <option value="">Semua Kelas/Unit</option>
+                    <option value="">Semua Kelas/Mapel</option>
                     @foreach ($classes as $c)
                         <option value="{{ $c }}" {{ request('class') == $c ? 'selected' : '' }}>{{ $c }}</option>
                     @endforeach

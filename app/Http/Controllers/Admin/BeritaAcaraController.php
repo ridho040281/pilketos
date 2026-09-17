@@ -104,6 +104,73 @@ class BeritaAcaraController extends Controller
                 return $item;
             });
 
+        // Perolehan Suara Paslon Per Kelas Siswa
+        $rawClassVotes = Ballot::where('voter_category', Voter::CATEGORY_SISWA)
+            ->whereNotNull('voter_class')
+            ->selectRaw("COALESCE(NULLIF(TRIM(voter_class), ''), '[Tanpa Kelas]') as class, candidate_id, count(*) as votes")
+            ->groupBy('class', 'candidate_id')
+            ->get();
+
+        $classesStats = $classesStats->map(function ($item) use ($candidates, $rawClassVotes) {
+            $classVotes = $rawClassVotes->where('class', $item->class);
+            $totalVotesInClass = $classVotes->sum('votes');
+            $item->total_ballots = $totalVotesInClass;
+            $candidateResults = [];
+            $highestVotes = 0;
+            $leadingCandidateId = null;
+            $isTie = false;
+
+            foreach ($candidates as $candidate) {
+                $v = (int) ($classVotes->where('candidate_id', $candidate->id)->first()->votes ?? 0);
+                $pct = $totalVotesInClass > 0 ? round(($v / $totalVotesInClass) * 100, 1) : 0;
+                $candidateResults[$candidate->id] = [
+                    'votes' => $v,
+                    'percentage' => $pct,
+                ];
+
+                if ($v > $highestVotes && $v > 0) {
+                    $highestVotes = $v;
+                    $leadingCandidateId = $candidate->id;
+                    $isTie = false;
+                } elseif ($v === $highestVotes && $v > 0) {
+                    $isTie = true;
+                }
+            }
+
+            $item->candidate_results = $candidateResults;
+            $item->leading_candidate_id = $isTie ? null : $leadingCandidateId;
+            $item->is_tie = $isTie;
+
+            return $item;
+        });
+
+        // Perolehan Suara Paslon Per Kategori (Guru, Tendik, Siswa)
+        $rawCategoryVotes = Ballot::whereNotNull('voter_category')
+            ->selectRaw('voter_category, candidate_id, count(*) as votes')
+            ->groupBy('voter_category', 'candidate_id')
+            ->get();
+
+        $categoryCandidateBreakdown = [];
+        foreach ([Voter::CATEGORY_GURU, Voter::CATEGORY_TENDIK, Voter::CATEGORY_SISWA] as $catKey) {
+            $catVotes = $rawCategoryVotes->where('voter_category', $catKey);
+            $totalCatVotes = $catVotes->sum('votes');
+            $catResults = [];
+
+            foreach ($candidates as $candidate) {
+                $v = $catVotes->where('candidate_id', $candidate->id)->first()->votes ?? 0;
+                $pct = $totalCatVotes > 0 ? round(($v / $totalCatVotes) * 100, 1) : 0;
+                $catResults[$candidate->id] = [
+                    'votes' => $v,
+                    'percentage' => $pct,
+                ];
+            }
+
+            $categoryCandidateBreakdown[$catKey] = [
+                'total_votes' => $totalCatVotes,
+                'candidates' => $catResults,
+            ];
+        }
+
         // Tab 1: Daftar Hadir Query & Filters
         $attendeesQuery = Voter::query();
         $status = $request->input('status', 'all');
@@ -183,6 +250,7 @@ class BeritaAcaraController extends Controller
             'classesStats',
             'guruClassStats',
             'tendikClassStats',
+            'categoryCandidateBreakdown',
             'attendees',
             'classes',
             'classesCounts',

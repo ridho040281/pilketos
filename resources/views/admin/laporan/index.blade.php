@@ -416,85 +416,298 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Perolehan Suara Paslon Berdasarkan Kategori Pemilih -->
+            <div class="mt-6 pt-6 border-t border-slate-200/80">
+                <div class="mb-4">
+                    <h4 class="text-sm font-bold text-slate-900">Perolehan Suara Pasangan Calon Berdasarkan Kategori Pemilih</h4>
+                    <p class="text-xs text-slate-500">Rincian perolehan suara sah masing-masing paslon dari pemilih Guru, Tenaga Kependidikan, dan Siswa</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    @php
+                        $catMeta = [
+                            'guru' => [
+                                'title' => 'Suara Pemilih Guru',
+                                'icon' => '👨‍🏫',
+                                'total' => $categoryCandidateBreakdown['guru']['total_votes'] ?? 0,
+                                'border' => 'border-emerald-200',
+                                'bg' => 'bg-emerald-50/20',
+                                'badge' => 'bg-emerald-100 text-emerald-800',
+                            ],
+                            'tendik' => [
+                                'title' => 'Suara Tenaga Kependidikan',
+                                'icon' => '💼',
+                                'total' => $categoryCandidateBreakdown['tendik']['total_votes'] ?? 0,
+                                'border' => 'border-amber-200',
+                                'bg' => 'bg-amber-50/20',
+                                'badge' => 'bg-amber-100 text-amber-800',
+                            ],
+                            'siswa' => [
+                                'title' => 'Suara Pemilih Siswa',
+                                'icon' => '🎓',
+                                'total' => $categoryCandidateBreakdown['siswa']['total_votes'] ?? 0,
+                                'border' => 'border-indigo-200',
+                                'bg' => 'bg-indigo-50/20',
+                                'badge' => 'bg-indigo-100 text-indigo-800',
+                            ],
+                        ];
+                    @endphp
+
+                    @foreach (['guru', 'tendik', 'siswa'] as $catKey)
+                        @php
+                            $meta = $catMeta[$catKey];
+                            $catData = $categoryCandidateBreakdown[$catKey] ?? ['total_votes' => 0, 'candidates' => []];
+                        @endphp
+                        <div class="p-4 rounded-2xl border {{ $meta['border'] }} {{ $meta['bg'] }} flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-3">
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl {{ $meta['badge'] }} text-xs font-bold">
+                                        <span>{{ $meta['icon'] }}</span> {{ $meta['title'] }}
+                                    </span>
+                                    <span class="text-xs font-bold text-slate-700">
+                                        {{ number_format($meta['total'], 0, ',', '.') }} suara
+                                    </span>
+                                </div>
+
+                                <div class="space-y-3">
+                                    @foreach ($candidates as $c)
+                                        @php
+                                            $cVote = $catData['candidates'][$c->id]['votes'] ?? 0;
+                                            $cPct = $catData['candidates'][$c->id]['percentage'] ?? 0;
+                                        @endphp
+                                        <div class="bg-white/90 backdrop-blur-xs p-3 rounded-xl border border-slate-200/70 shadow-2xs">
+                                            <div class="flex items-center justify-between text-xs mb-1.5">
+                                                <div class="flex items-center gap-2 min-w-0">
+                                                    <span class="w-5 h-5 rounded-md text-white font-black text-[10px] flex items-center justify-center shrink-0" style="background-color: {{ $c->card_color }}">
+                                                        {{ sprintf('%02d', $c->candidate_number) }}
+                                                    </span>
+                                                    <span class="font-bold text-slate-800 truncate">{{ $c->leader_name }}</span>
+                                                </div>
+                                                <div class="text-right shrink-0">
+                                                    <span class="font-black text-slate-900">{{ $cVote }}</span>
+                                                    <span class="text-[11px] font-bold ml-1" style="color: {{ $c->card_color }}">({{ $cPct }}%)</span>
+                                                </div>
+                                            </div>
+                                            <div class="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                                                <div class="h-full rounded-full transition-all duration-500" style="width: {{ $cPct }}%; background-color: {{ $c->card_color }}"></div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
         </div>
 
         <!-- Section 3: Rekapitulasi & Grafik Partisipasi Per Kelas (Siswa) -->
         <div class="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
                 <div>
-                    <h3 class="text-base font-bold text-slate-900">Grafik & Rekapitulasi Partisipasi Per Kelas Siswa</h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Pantau capaian persentase dan jumlah suara masuk untuk setiap rombel kelas</p>
+                    <h3 class="text-base font-bold text-slate-900">Grafik & Rekapitulasi Perolehan Suara Paslon Per Kelas Siswa</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Pantau capaian persentase dan jumlah suara masing-masing pasangan calon untuk setiap rombel kelas</p>
                 </div>
                 <div class="text-xs text-slate-500 font-medium">
                     Total: <strong class="text-slate-900 font-bold">{{ $classesStats->count() }}</strong> Kelas
                 </div>
             </div>
 
-            <!-- Graphic Bar Chart for Classes -->
-            <div class="bg-slate-50/70 rounded-2xl p-4 border border-slate-200 mb-6">
-                <div class="flex items-center justify-between mb-3">
+            <!-- Graphic Visualization with Toggle (Paslon vs Partisipasi) -->
+            <div x-data="{ classChartMode: 'paslon' }" class="space-y-4 mb-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
-                        <span class="text-xs font-bold text-slate-700 block">Grafik Batang Persentase Suara Masuk Per Kelas</span>
-                        <span class="text-[11px] text-slate-400">Urutan tingkat kehadiran siswa dari tiap rombel</span>
+                        <h4 class="text-xs font-bold text-slate-800 block">Grafik Visual Per Kelas Siswa</h4>
+                        <span class="text-[11px] text-slate-400">Pilih mode tampilan grafik perolehan suara atau persentase kehadiran siswa</span>
+                    </div>
+                    <div class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200/80 self-start sm:self-auto">
+                        <button 
+                            type="button"
+                            @click="classChartMode = 'paslon'; $nextTick(() => { if (window.hitungCepatCharts && window.hitungCepatCharts.classesPaslon) window.hitungCepatCharts.classesPaslon.resize(); })" 
+                            :class="classChartMode === 'paslon' ? 'bg-white text-indigo-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 font-medium'"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer">
+                            <span>📊 Perolehan Suara Paslon</span>
+                        </button>
+                        <button 
+                            type="button"
+                            @click="classChartMode = 'turnout'; $nextTick(() => { if (window.hitungCepatCharts && window.hitungCepatCharts.classes) window.hitungCepatCharts.classes.resize(); })" 
+                            :class="classChartMode === 'turnout' ? 'bg-white text-indigo-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 font-medium'"
+                            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer">
+                            <span>📈 Persentase Kehadiran Siswa</span>
+                        </button>
                     </div>
                 </div>
-                <div class="relative w-full" style="height: {{ max(280, min(500, $classesStats->count() * 26)) }}px;">
-                    <canvas id="classesBarChart"></canvas>
+
+                <!-- Chart 1: Paslon Stacked Horizontal Bar -->
+                <div x-show="classChartMode === 'paslon'" class="bg-slate-50/70 rounded-2xl p-4 border border-slate-200">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
+                        <div>
+                            <span class="text-xs font-bold text-slate-800 block">Grafik Batang Perolehan Suara Paslon Tiap Kelas</span>
+                            <span class="text-[11px] text-slate-500">Komposisi suara pasangan calon pada masing-masing rombel kelas</span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-3">
+                            @foreach ($candidates as $c)
+                                <span class="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700">
+                                    <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: {{ $c->card_color }}"></span>
+                                    Paslon {{ sprintf('%02d', $c->candidate_number) }}
+                                </span>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="relative w-full" style="height: {{ max(300, min(850, $classesStats->count() * 28)) }}px;">
+                        <canvas id="classesPaslonChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Chart 2: Turnout Bar Chart -->
+                <div x-show="classChartMode === 'turnout'" class="bg-slate-50/70 rounded-2xl p-4 border border-slate-200">
+                    <div class="mb-3">
+                        <span class="text-xs font-bold text-slate-800 block">Grafik Batang Persentase Kehadiran Siswa Per Kelas</span>
+                        <span class="text-[11px] text-slate-500">Urutan tingkat kehadiran siswa dari tiap rombel</span>
+                    </div>
+                    <div class="relative w-full" style="height: {{ max(280, min(500, $classesStats->count() * 26)) }}px;">
+                        <canvas id="classesBarChart"></canvas>
+                    </div>
                 </div>
             </div>
 
-            <!-- Detailed Classes Table -->
-            <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+            <!-- Detailed Classes Table with Candidate Breakdown -->
+            <div class="overflow-x-auto border border-slate-200 rounded-2xl shadow-2xs">
                 <table class="w-full text-left text-xs">
-                    <thead class="bg-slate-50 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
+                    <thead class="bg-slate-50 text-slate-700 uppercase tracking-wider font-bold border-b border-slate-200">
                         <tr>
-                            <th class="px-4 py-3 w-12 text-center">No</th>
-                            <th class="px-4 py-3">Nama Kelas</th>
-                            <th class="px-4 py-3 text-right">Total DPT</th>
-                            <th class="px-4 py-3 text-right">Sudah Memilih</th>
-                            <th class="px-4 py-3 text-right">Belum Memilih</th>
-                            <th class="px-4 py-3 w-48">Persentase Partisipasi</th>
+                            <th rowspan="2" class="px-3 py-3 w-10 text-center align-middle border-r border-slate-200">No</th>
+                            <th rowspan="2" class="px-4 py-3 min-w-[130px] align-middle border-r border-slate-200">Nama Kelas</th>
+                            <th colspan="3" class="px-3 py-2 text-center border-b border-r border-slate-200 bg-slate-100/70 text-slate-700">Partisipasi Kelas</th>
+                            @foreach ($candidates as $c)
+                                <th colspan="2" class="px-3 py-2 text-center border-b border-r border-slate-200" style="background-color: {{ $c->card_color }}15; border-top: 3px solid {{ $c->card_color }};">
+                                    <span class="inline-flex items-center gap-1">
+                                        <span class="w-2 h-2 rounded-full" style="background-color: {{ $c->card_color }}"></span>
+                                        Paslon {{ sprintf('%02d', $c->candidate_number) }}
+                                    </span>
+                                </th>
+                            @endforeach
+                            <th rowspan="2" class="px-3 py-3 min-w-[120px] text-center align-middle">Unggul di Kelas</th>
+                        </tr>
+                        <tr class="bg-slate-50/90 text-[11px]">
+                            <th class="px-2.5 py-1.5 text-right border-r border-slate-200 text-slate-600">DPT</th>
+                            <th class="px-2.5 py-1.5 text-right border-r border-slate-200 text-slate-600">Hadir</th>
+                            <th class="px-2.5 py-1.5 text-right border-r border-slate-200 text-slate-600">% Hadir</th>
+                            @foreach ($candidates as $c)
+                                <th class="px-2.5 py-1.5 text-right border-r border-slate-100 font-bold" style="color: {{ $c->card_color }}">Suara</th>
+                                <th class="px-2.5 py-1.5 text-right border-r border-slate-200 font-bold" style="color: {{ $c->card_color }}">% Suara</th>
+                            @endforeach
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
                         @forelse ($classesStats as $index => $stat)
                             <tr class="hover:bg-slate-50/80 transition-colors">
-                                <td class="px-4 py-2.5 text-center font-bold text-slate-400">{{ $index + 1 }}</td>
-                                <td class="px-4 py-2.5 font-bold text-slate-900">{{ $stat->class }}</td>
-                                <td class="px-4 py-2.5 text-right font-semibold">{{ $stat->total }}</td>
-                                <td class="px-4 py-2.5 text-right font-bold text-emerald-600">{{ $stat->voted }}</td>
-                                <td class="px-4 py-2.5 text-right font-semibold text-amber-600">{{ $stat->unvoted }}</td>
-                                <td class="px-4 py-2.5">
-                                    <div class="flex items-center space-x-2.5">
-                                        <div class="flex-1 bg-slate-200 rounded-full h-2 overflow-hidden">
-                                            <div class="h-full rounded-full transition-all duration-500 {{ $stat->percentage >= 80 ? 'bg-emerald-500' : ($stat->percentage >= 50 ? 'bg-indigo-600' : 'bg-amber-500') }}" style="width: {{ $stat->percentage }}%"></div>
-                                        </div>
-                                        <span class="font-extrabold text-xs {{ $stat->percentage >= 80 ? 'text-emerald-700' : ($stat->percentage >= 50 ? 'text-indigo-700' : 'text-amber-700') }}">
-                                            {{ $stat->percentage }}%
+                                <td class="px-3 py-2.5 text-center font-bold text-slate-400 border-r border-slate-100">{{ $index + 1 }}</td>
+                                <td class="px-4 py-2.5 font-bold text-slate-900 border-r border-slate-100 whitespace-nowrap">{{ $stat->class }}</td>
+                                <td class="px-2.5 py-2.5 text-right font-semibold text-slate-600 border-r border-slate-100">{{ $stat->total }}</td>
+                                <td class="px-2.5 py-2.5 text-right font-bold text-emerald-600 border-r border-slate-100">{{ $stat->voted }}</td>
+                                <td class="px-2.5 py-2.5 text-right font-bold text-indigo-600 border-r border-slate-100">{{ $stat->percentage }}%</td>
+                                
+                                @foreach ($candidates as $c)
+                                    @php
+                                        $res = $stat->candidate_results[$c->id] ?? ['votes' => 0, 'percentage' => 0];
+                                        $isWinnerInClass = ($stat->leading_candidate_id === $c->id);
+                                    @endphp
+                                    <td class="px-2.5 py-2.5 text-right font-bold {{ $isWinnerInClass ? 'text-slate-900 bg-amber-50/50' : 'text-slate-600' }}">
+                                        {{ $res['votes'] }}
+                                    </td>
+                                    <td class="px-2.5 py-2.5 text-right font-bold border-r border-slate-100 {{ $isWinnerInClass ? 'text-slate-900 bg-amber-50/50' : 'text-slate-600' }}">
+                                        <span class="inline-flex items-center gap-1 font-black" style="color: {{ $c->card_color }}">
+                                            {{ $res['percentage'] }}%
                                         </span>
-                                    </div>
+                                    </td>
+                                @endforeach
+
+                                <td class="px-3 py-2.5 text-center">
+                                    @if($stat->leading_candidate_id)
+                                        @php $leadCand = $candidates->firstWhere('id', $stat->leading_candidate_id); @endphp
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black text-white shadow-2xs" style="background-color: {{ $leadCand ? $leadCand->card_color : '#4f46e5' }}">
+                                            🏆 Paslon {{ sprintf('%02d', $leadCand ? $leadCand->candidate_number : 0) }}
+                                        </span>
+                                    @elseif($stat->is_tie && $stat->total_ballots > 0)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                                            ⚖️ Imbang
+                                        </span>
+                                    @else
+                                        <span class="text-slate-400 text-[11px] italic">-</span>
+                                    @endif
                                 </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-4 py-6 text-center text-slate-400">Belum ada data kelas siswa.</td>
+                                <td colspan="{{ 6 + ($candidates->count() * 2) }}" class="px-4 py-6 text-center text-slate-400">Belum ada data kelas siswa.</td>
                             </tr>
                         @endforelse
                     </tbody>
                     @if($classesStats->isNotEmpty())
                         <tfoot class="bg-slate-100/90 font-bold text-slate-800 border-t-2 border-slate-300">
                             <tr>
-                                <td colspan="2" class="px-4 py-3.5 font-black uppercase text-slate-900">Total Kelas Siswa ({{ $classesStats->count() }} Kelas)</td>
-                                <td class="px-4 py-3.5 font-black text-right text-slate-900">{{ number_format($classesStats->sum('total'), 0, ',', '.') }}</td>
-                                <td class="px-4 py-3.5 font-black text-right text-emerald-700">{{ number_format($classesStats->sum('voted'), 0, ',', '.') }}</td>
-                                <td class="px-4 py-3.5 font-black text-right text-amber-700">{{ number_format($classesStats->sum('unvoted'), 0, ',', '.') }}</td>
-                                <td class="px-4 py-3.5 font-black text-indigo-700">
-                                    <div class="flex items-center space-x-2.5">
-                                        <div class="flex-1 bg-slate-300 rounded-full h-2.5 overflow-hidden">
-                                            <div class="h-full bg-indigo-600 rounded-full" style="width: {{ $siswaStats->percentage }}%"></div>
-                                        </div>
-                                        <span class="font-black text-xs text-indigo-700">{{ $siswaStats->percentage }}%</span>
-                                    </div>
+                                <td colspan="2" class="px-4 py-3.5 font-black uppercase text-slate-900 border-r border-slate-200">
+                                    Total Semua Kelas ({{ $classesStats->count() }} Rombel)
+                                </td>
+                                <td class="px-2.5 py-3.5 font-black text-right text-slate-900 border-r border-slate-200">
+                                    {{ number_format($classesStats->sum('total'), 0, ',', '.') }}
+                                </td>
+                                <td class="px-2.5 py-3.5 font-black text-right text-emerald-700 border-r border-slate-200">
+                                    {{ number_format($classesStats->sum('voted'), 0, ',', '.') }}
+                                </td>
+                                <td class="px-2.5 py-3.5 font-black text-right text-indigo-700 border-r border-slate-200">
+                                    {{ $siswaStats->percentage }}%
+                                </td>
+
+                                @php
+                                    $totalSiswaBallots = $classesStats->sum('total_ballots');
+                                @endphp
+                                @foreach ($candidates as $c)
+                                    @php
+                                        $candClassTotalVotes = $classesStats->sum(function($item) use ($c) {
+                                            return $item->candidate_results[$c->id]['votes'] ?? 0;
+                                        });
+                                        $candClassPct = $totalSiswaBallots > 0 ? round(($candClassTotalVotes / $totalSiswaBallots) * 100, 1) : 0;
+                                    @endphp
+                                    <td class="px-2.5 py-3.5 font-black text-right text-slate-900">
+                                        {{ number_format($candClassTotalVotes, 0, ',', '.') }}
+                                    </td>
+                                    <td class="px-2.5 py-3.5 font-black text-right border-r border-slate-200" style="color: {{ $c->card_color }}">
+                                        {{ $candClassPct }}%
+                                    </td>
+                                @endforeach
+
+                                <td class="px-3 py-3.5 text-center font-black">
+                                    @php
+                                        $overallClassWinner = null;
+                                        $highestCandVotes = 0;
+                                        $isOverallTie = false;
+                                        foreach ($candidates as $c) {
+                                            $vCount = $classesStats->sum(function($item) use ($c) {
+                                                return $item->candidate_results[$c->id]['votes'] ?? 0;
+                                            });
+                                            if ($vCount > $highestCandVotes && $vCount > 0) {
+                                                $highestCandVotes = $vCount;
+                                                $overallClassWinner = $c;
+                                                $isOverallTie = false;
+                                            } elseif ($vCount === $highestCandVotes && $vCount > 0) {
+                                                $isOverallTie = true;
+                                            }
+                                        }
+                                    @endphp
+                                    @if($overallClassWinner && !$isOverallTie)
+                                        <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black text-white shadow-2xs" style="background-color: {{ $overallClassWinner->card_color }}">
+                                            🏆 Paslon {{ sprintf('%02d', $overallClassWinner->candidate_number) }}
+                                        </span>
+                                    @elseif($isOverallTie && $highestCandVotes > 0)
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
+                                            ⚖️ Imbang
+                                        </span>
+                                    @else
+                                        <span class="text-slate-400 text-[11px]">-</span>
+                                    @endif
                                 </td>
                             </tr>
                         </tfoot>
@@ -1237,6 +1450,81 @@
                                 autoSkip: false
                             },
                             grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 5. Classes Paslon Stacked Bar Chart (Perolehan Suara Paslon Per Kelas)
+        const classesPaslonCtx = document.getElementById('classesPaslonChart');
+        if (classesPaslonCtx) {
+            if (hitungCepatCharts.classesPaslon) {
+                hitungCepatCharts.classesPaslon.destroy();
+            }
+            const classesStats = @js($classesStats);
+            const candidates = @js($candidates);
+            const labels = classesStats.map(s => s.class);
+
+            const datasets = candidates.map(c => {
+                return {
+                    label: 'Paslon ' + String(c.candidate_number).padStart(2, '0') + ' (' + c.leader_name + ')',
+                    data: classesStats.map(s => (s.candidate_results && s.candidate_results[c.id]) ? s.candidate_results[c.id].votes : 0),
+                    backgroundColor: c.card_color || '#4f46e5',
+                    borderRadius: 4,
+                    borderSkipped: false,
+                };
+            });
+
+            hitungCepatCharts.classesPaslon = new Chart(classesPaslonCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            stacked: true,
+                            beginAtZero: true,
+                            ticks: {
+                                precision: 0,
+                                font: { family: 'Plus Jakarta Sans', weight: 'bold' }
+                            },
+                            grid: { color: '#f1f5f9' },
+                            title: {
+                                display: true,
+                                text: 'Jumlah Suara Sah Masuk',
+                                font: { family: 'Plus Jakarta Sans', size: 11, weight: 'bold' },
+                                color: '#94a3b8'
+                            }
+                        },
+                        y: {
+                            stacked: true,
+                            ticks: {
+                                font: { family: 'Plus Jakarta Sans', weight: 'bold', size: 11 },
+                                autoSkip: false
+                            },
+                            grid: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    const stat = classesStats[ctx.dataIndex];
+                                    const votes = ctx.raw;
+                                    const total = stat.total_ballots || 0;
+                                    const pct = total > 0 ? ((votes / total) * 100).toFixed(1) : 0;
+                                    return ` ${ctx.dataset.label}: ${votes} suara (${pct}%)`;
+                                }
+                            }
                         }
                     }
                 }

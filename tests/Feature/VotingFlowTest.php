@@ -98,8 +98,11 @@ class VotingFlowTest extends TestCase
         $this->assertTrue($voter->fresh()->has_voted);
         $this->assertNotNull($voter->fresh()->voted_at);
 
-        // Anonymous ballot stored
+        // Anonymous ballot stored with category and class
         $this->assertEquals(1, Ballot::where('candidate_id', $candidate->id)->count());
+        $ballot = Ballot::where('candidate_id', $candidate->id)->first();
+        $this->assertEquals('X-1', $ballot->voter_class);
+        $this->assertEquals('siswa', $ballot->voter_category);
 
         // Voter session cleared
         $this->assertNull(session('voter_id'));

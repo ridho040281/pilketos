@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['candidate_id', 'created_at'])]
+#[Fillable(['candidate_id', 'voter_category', 'voter_class', 'created_at'])]
 class Ballot extends Model
 {
     public $timestamps = false;

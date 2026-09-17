@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Ballot;
 use App\Models\Candidate;
 use App\Models\ElectionSetting;
 use App\Models\User;
@@ -291,5 +292,88 @@ class LaporanTest extends TestCase
         $response->assertSee('classesBarChart');
         $response->assertSee('categoryBarChart');
         $response->assertSee('categoryDoughnutChart');
+        $response->assertSee('classesPaslonChart');
+    }
+
+    public function test_hitung_cepat_displays_candidate_percentages_per_class_and_category(): void
+    {
+        $c1 = Candidate::where('candidate_number', 1)->first();
+        $c2 = Candidate::create([
+            'candidate_number' => 2,
+            'leader_name' => 'Calon Beta',
+            'co_leader_name' => 'Wakil Beta',
+            'vision' => 'Visi Beta',
+            'mission' => 'Misi Beta',
+            'card_color' => '#3b82f6',
+        ]);
+
+        // Voter DPT
+        Voter::create([
+            'nisn' => 'S101',
+            'name' => 'Siswa 1',
+            'category' => Voter::CATEGORY_SISWA,
+            'class' => 'XII-IPA-1',
+            'passcode' => 'PASS101',
+            'has_voted' => true,
+        ]);
+        Voter::create([
+            'nisn' => 'S102',
+            'name' => 'Siswa 2',
+            'category' => Voter::CATEGORY_SISWA,
+            'class' => 'XII-IPA-1',
+            'passcode' => 'PASS102',
+            'has_voted' => true,
+        ]);
+        Voter::create([
+            'nisn' => 'S103',
+            'name' => 'Siswa 3',
+            'category' => Voter::CATEGORY_SISWA,
+            'class' => 'XII-IPA-1',
+            'passcode' => 'PASS103',
+            'has_voted' => false,
+        ]);
+
+        // Ballots with class and category
+        Ballot::create([
+            'candidate_id' => $c1->id,
+            'voter_category' => Voter::CATEGORY_SISWA,
+            'voter_class' => 'XII-IPA-1',
+        ]);
+        Ballot::create([
+            'candidate_id' => $c1->id,
+            'voter_category' => Voter::CATEGORY_SISWA,
+            'voter_class' => 'XII-IPA-1',
+        ]);
+        Ballot::create([
+            'candidate_id' => $c2->id,
+            'voter_category' => Voter::CATEGORY_GURU,
+            'voter_class' => 'Matematika',
+        ]);
+
+        $response = $this->actingAs($this->admin)->get(route('admin.laporan.index', ['tab' => 'hitung-cepat']));
+
+        $response->assertStatus(200);
+        $response->assertSee('XII-IPA-1');
+        $response->assertSee('Ahmad Calon');
+        $response->assertSee('Calon Beta');
+        $response->assertSee('Perolehan Suara Pasangan Calon Berdasarkan Kategori Pemilih');
+        $response->assertSee('Grafik & Rekapitulasi Perolehan Suara Paslon Per Kelas Siswa', false);
+        $response->assertSee('classesPaslonChart');
+
+        $classesStats = $response->viewData('classesStats');
+        $classItem = $classesStats->firstWhere('class', 'XII-IPA-1');
+
+        $this->assertNotNull($classItem);
+        $this->assertEquals(3, $classItem->total);
+        $this->assertEquals(2, $classItem->voted);
+        $this->assertEquals(2, $classItem->total_ballots);
+        // Candidate 1 won 2 of 2 votes in class XII-IPA-1 => 100%
+        $this->assertEquals(2, $classItem->candidate_results[$c1->id]['votes']);
+        $this->assertEquals(100.0, $classItem->candidate_results[$c1->id]['percentage']);
+        $this->assertEquals($c1->id, $classItem->leading_candidate_id);
+
+        $categoryBreakdown = $response->viewData('categoryCandidateBreakdown');
+        $this->assertEquals(2, $categoryBreakdown['siswa']['candidates'][$c1->id]['votes']);
+        $this->assertEquals(1, $categoryBreakdown['guru']['candidates'][$c2->id]['votes']);
     }
 }

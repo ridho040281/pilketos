@@ -127,9 +127,11 @@ class BilikController extends Controller
                     'voted_at' => now(),
                 ]);
 
-                // 2. Insert anonymous ballot (NO voter id stored - pure secret ballot)
+                // 2. Insert ballot with class & category (semi-anonymous: no voter_id/name stored for privacy)
                 Ballot::create([
                     'candidate_id' => $validated['candidate_id'],
+                    'voter_category' => $voter->category,
+                    'voter_class' => $voter->class,
                     'created_at' => now(),
                 ]);
             });

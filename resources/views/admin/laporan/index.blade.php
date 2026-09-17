@@ -21,6 +21,13 @@
                 this.filterClass = initialClass;
             });
         }
+        if (this.activeTab === 'hitung-cepat') {
+            setTimeout(() => {
+                if (window.renderHitungCepatCharts) {
+                    window.renderHitungCepatCharts();
+                }
+            }, 100);
+        }
     },
     get availableClasses() {
         if (this.filterCategory && this.categoryClasses[this.filterCategory]) {
@@ -50,6 +57,15 @@
         const url = new URL(window.location);
         url.searchParams.set('tab', tab);
         window.history.replaceState({}, '', url);
+        if (tab === 'hitung-cepat') {
+            this.$nextTick(() => {
+                setTimeout(() => {
+                    if (window.renderHitungCepatCharts) {
+                        window.renderHitungCepatCharts();
+                    }
+                }, 50);
+            });
+        }
     },
     fetchLaporan() {
         this.isSearching = true;
@@ -107,12 +123,24 @@
             </div>
 
             <!-- Tab Switcher Buttons -->
-            <div class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200/80 self-start sm:self-auto">
+            <div class="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200/80 self-start sm:self-auto overflow-x-auto max-w-full">
+                <button 
+                    type="button"
+                    @click="setTab('hitung-cepat')" 
+                    :class="activeTab === 'hitung-cepat' ? 'bg-white text-indigo-600 font-bold shadow-sm shadow-slate-200' : 'text-slate-600 hover:text-slate-900 font-medium'"
+                    class="flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs transition-all cursor-pointer whitespace-nowrap">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    <span>Hitung Cepat</span>
+                    <span class="ml-1 text-[10px] px-1.5 py-0.5 rounded-md font-bold" :class="activeTab === 'hitung-cepat' ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-200 text-slate-600'">
+                        Grafik Live
+                    </span>
+                </button>
+
                 <button 
                     type="button"
                     @click="setTab('daftar-hadir')" 
                     :class="activeTab === 'daftar-hadir' ? 'bg-white text-indigo-600 font-bold shadow-sm shadow-slate-200' : 'text-slate-600 hover:text-slate-900 font-medium'"
-                    class="flex items-center gap-2 px-4 py-2 rounded-lg text-xs transition-all cursor-pointer">
+                    class="flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs transition-all cursor-pointer whitespace-nowrap">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
                     <span>Daftar Hadir Pemilih</span>
                     <span class="ml-1 text-[10px] px-1.5 py-0.5 rounded-md font-bold" :class="activeTab === 'daftar-hadir' ? 'bg-indigo-50 text-indigo-700' : 'bg-slate-200 text-slate-600'">
@@ -124,7 +152,7 @@
                     type="button"
                     @click="setTab('berita-acara')" 
                     :class="activeTab === 'berita-acara' ? 'bg-white text-indigo-600 font-bold shadow-sm shadow-slate-200' : 'text-slate-600 hover:text-slate-900 font-medium'"
-                    class="flex items-center gap-2 px-4 py-2 rounded-lg text-xs transition-all cursor-pointer">
+                    class="flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-lg text-xs transition-all cursor-pointer whitespace-nowrap">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     <span>Berita Acara Pleno</span>
                     <span class="ml-1 text-[10px] px-1.5 py-0.5 rounded-md font-bold" :class="activeTab === 'berita-acara' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-200 text-slate-600'">
@@ -136,7 +164,429 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- TAB 1: DAFTAR HADIR PEMILIH                -->
+    <!-- TAB 1: HITUNG CEPAT (GRAFIK & REALTIME)    -->
+    <!-- ========================================== -->
+    <div x-show="activeTab === 'hitung-cepat'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-6">
+        <!-- Quick Action & Header Info Bar -->
+        <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <div class="flex items-center gap-2">
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-1.5"></span>
+                        Hitung Cepat Realtime
+                    </span>
+                    <span class="text-xs text-slate-400 font-medium">Diperbarui: {{ now()->translatedFormat('d M Y, H:i') }} WIB</span>
+                </div>
+                <h3 class="text-base font-bold text-slate-900 mt-1">Perolehan Suara & Statistik Partisipasi Pemilih</h3>
+                <p class="text-xs text-slate-500 mt-0.5">Grafik hasil persentase dan jumlah suara masuk per kategori Guru, Kelas Siswa, dan Tenaga Kependidikan.</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('admin.laporan.index', ['tab' => 'hitung-cepat']) }}" class="inline-flex items-center px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs transition-colors shadow-sm">
+                    <svg class="w-3.5 h-3.5 mr-1.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    Segarkan Data
+                </a>
+                <a href="{{ route('proyektor.index') }}" target="_blank" class="inline-flex items-center px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition-colors shadow-sm shadow-indigo-600/30">
+                    <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                    Layar Proyektor
+                </a>
+            </div>
+        </div>
+
+        <!-- 4 Global Summary Stats Cards -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                </div>
+                <div>
+                    <span class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider block">Total DPT</span>
+                    <span class="text-xl font-black text-slate-900">{{ number_format($totalVoters, 0, ',', '.') }}</span>
+                    <span class="text-[11px] text-slate-500 block">Pemilih Terdaftar</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <div>
+                    <span class="text-[11px] font-semibold text-emerald-600 uppercase tracking-wider block">Suara Masuk</span>
+                    <span class="text-xl font-black text-emerald-700">{{ number_format($votedCount, 0, ',', '.') }}</span>
+                    <span class="text-[11px] text-emerald-600 font-bold block">{{ $turnoutPercentage }}% Partisipasi</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <div>
+                    <span class="text-[11px] font-semibold text-amber-600 uppercase tracking-wider block">Belum Memilih</span>
+                    <span class="text-xl font-black text-amber-700">{{ number_format($unvotedCount, 0, ',', '.') }}</span>
+                    <span class="text-[11px] text-amber-600 font-bold block">{{ $totalVoters > 0 ? round(($unvotedCount / $totalVoters) * 100, 1) : 0 }}% Belum Hadir</span>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-3.5">
+                <div class="w-11 h-11 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold shrink-0">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                </div>
+                <div>
+                    <span class="text-[11px] font-semibold text-purple-600 uppercase tracking-wider block">Kotak Suara</span>
+                    <span class="text-xl font-black text-purple-700">{{ number_format($totalBallots, 0, ',', '.') }}</span>
+                    <span class="text-[11px] text-purple-600 font-bold block">{{ $candidates->count() }} Pasangan Calon</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 1: Perolehan Suara Paslon (Graphic & Cards) -->
+        <div class="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Perolehan Suara Pasangan Calon</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Grafik dan persentase perolehan suara sah di bilik suara</p>
+                </div>
+                <div class="text-xs text-slate-500 font-medium">
+                    Total Suara Sah: <strong class="text-slate-900 font-bold">{{ number_format($totalBallots, 0, ',', '.') }}</strong> suara
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                <!-- Left: Candidate Cards -->
+                <div class="lg:col-span-7 space-y-3">
+                    @forelse ($candidates as $c)
+                        <div class="p-4 rounded-2xl border-2 transition-all {{ $winner && $winner->id === $c->id && $totalBallots > 0 ? 'border-indigo-500 bg-indigo-50/20 shadow-sm' : 'border-slate-100 bg-slate-50/60' }}">
+                            <div class="flex items-center justify-between gap-3">
+                                <div class="flex items-center space-x-3 min-w-0">
+                                    <span class="w-10 h-10 rounded-xl text-white font-black text-base flex items-center justify-center shrink-0 shadow-sm" style="background-color: {{ $c->card_color }}">
+                                        {{ sprintf('%02d', $c->candidate_number) }}
+                                    </span>
+                                    <div class="min-w-0">
+                                        <div class="flex items-center gap-2">
+                                            <h4 class="text-sm font-bold text-slate-900 truncate">{{ $c->leader_name }}</h4>
+                                            @if($winner && $winner->id === $c->id && $totalBallots > 0)
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-indigo-100 text-indigo-700 shrink-0">
+                                                    Unggul
+                                                </span>
+                                            @endif
+                                        </div>
+                                        @if(!empty($c->co_leader_name))
+                                            <p class="text-xs text-slate-500 truncate">& {{ $c->co_leader_name }}</p>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="text-right shrink-0">
+                                    <span class="text-lg font-black text-slate-900">{{ number_format($c->ballots_count, 0, ',', '.') }}</span>
+                                    <span class="text-xs text-slate-400 block font-semibold">suara</span>
+                                </div>
+                            </div>
+
+                            <div class="mt-3">
+                                <div class="flex items-center justify-between text-xs mb-1 font-semibold">
+                                    <span class="text-slate-500">Persentase</span>
+                                    <span class="font-bold" style="color: {{ $c->card_color }}">{{ $c->percentage }}%</span>
+                                </div>
+                                <div class="w-full bg-slate-200/80 rounded-full h-2.5 overflow-hidden">
+                                    <div class="h-full rounded-full transition-all duration-500" style="width: {{ $c->percentage }}%; background-color: {{ $c->card_color }}"></div>
+                                </div>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="text-center py-6 text-xs text-slate-400">Belum ada data pasangan calon.</div>
+                    @endforelse
+                </div>
+
+                <!-- Right: Chart Graphic Paslon -->
+                <div class="lg:col-span-5 bg-slate-50/70 rounded-2xl p-4 border border-slate-200 flex flex-col justify-between">
+                    <div class="mb-3">
+                        <span class="text-xs font-bold text-slate-700 block">Grafik Perolehan Suara Paslon</span>
+                        <span class="text-[11px] text-slate-400">Diagram perbandingan suara sah</span>
+                    </div>
+                    <div class="relative h-64 w-full">
+                        <canvas id="paslonChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Rekapitulasi & Grafik Partisipasi Per Kategori (Guru, Tendik, Siswa) -->
+        <div class="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Grafik & Rekapitulasi Partisipasi Per Kategori</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Persentase dan jumlah suara masuk dari Guru, Tenaga Kependidikan, dan Siswa</p>
+                </div>
+            </div>
+
+            <!-- 3 Category Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <!-- Guru Card -->
+                <div class="p-5 rounded-2xl border border-emerald-200/80 bg-emerald-50/30 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-emerald-100 text-emerald-800 text-xs font-bold">
+                                <span>👨‍🏫</span> Guru
+                            </span>
+                            <span class="text-base font-black text-emerald-700">{{ $guruStats->percentage }}%</span>
+                        </div>
+                        <div class="mt-4 flex items-baseline justify-between">
+                            <div>
+                                <span class="text-2xl font-black text-slate-900">{{ number_format($guruStats->voted, 0, ',', '.') }}</span>
+                                <span class="text-xs text-slate-500 font-semibold">/ {{ number_format($guruStats->total, 0, ',', '.') }} hadir</span>
+                            </div>
+                            <span class="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200/60">
+                                {{ number_format($guruStats->unvoted, 0, ',', '.') }} belum
+                            </span>
+                        </div>
+                    </div>
+                    <div class="w-full bg-emerald-200/60 rounded-full h-2 mt-3 overflow-hidden">
+                        <div class="bg-emerald-600 h-full rounded-full transition-all duration-500" style="width: {{ $guruStats->percentage }}%"></div>
+                    </div>
+                </div>
+
+                <!-- Tendik Card -->
+                <div class="p-5 rounded-2xl border border-amber-200/80 bg-amber-50/30 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-100 text-amber-800 text-xs font-bold">
+                                <span>💼</span> Tenaga Kependidikan (Tendik)
+                            </span>
+                            <span class="text-base font-black text-amber-700">{{ $tendikStats->percentage }}%</span>
+                        </div>
+                        <div class="mt-4 flex items-baseline justify-between">
+                            <div>
+                                <span class="text-2xl font-black text-slate-900">{{ number_format($tendikStats->voted, 0, ',', '.') }}</span>
+                                <span class="text-xs text-slate-500 font-semibold">/ {{ number_format($tendikStats->total, 0, ',', '.') }} hadir</span>
+                            </div>
+                            <span class="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200/60">
+                                {{ number_format($tendikStats->unvoted, 0, ',', '.') }} belum
+                            </span>
+                        </div>
+                    </div>
+                    <div class="w-full bg-amber-200/60 rounded-full h-2 mt-3 overflow-hidden">
+                        <div class="bg-amber-500 h-full rounded-full transition-all duration-500" style="width: {{ $tendikStats->percentage }}%"></div>
+                    </div>
+                </div>
+
+                <!-- Siswa Card -->
+                <div class="p-5 rounded-2xl border border-indigo-200/80 bg-indigo-50/30 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-indigo-100 text-indigo-800 text-xs font-bold">
+                                <span>🎓</span> Siswa (Semua Kelas)
+                            </span>
+                            <span class="text-base font-black text-indigo-700">{{ $siswaStats->percentage }}%</span>
+                        </div>
+                        <div class="mt-4 flex items-baseline justify-between">
+                            <div>
+                                <span class="text-2xl font-black text-slate-900">{{ number_format($siswaStats->voted, 0, ',', '.') }}</span>
+                                <span class="text-xs text-slate-500 font-semibold">/ {{ number_format($siswaStats->total, 0, ',', '.') }} hadir</span>
+                            </div>
+                            <span class="text-xs font-semibold text-amber-600 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200/60">
+                                {{ number_format($siswaStats->unvoted, 0, ',', '.') }} belum
+                            </span>
+                        </div>
+                    </div>
+                    <div class="w-full bg-indigo-200/60 rounded-full h-2 mt-3 overflow-hidden">
+                        <div class="bg-indigo-600 h-full rounded-full transition-all duration-500" style="width: {{ $siswaStats->percentage }}%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graphic Charts for Categories -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-slate-50/70 rounded-2xl p-4 border border-slate-200">
+                    <div class="mb-3">
+                        <span class="text-xs font-bold text-slate-700 block">Grafik Tingkat Partisipasi Antar Kategori (%)</span>
+                        <span class="text-[11px] text-slate-400">Perbandingan persentase kehadiran pemilih</span>
+                    </div>
+                    <div class="relative h-60 w-full">
+                        <canvas id="categoryBarChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-slate-50/70 rounded-2xl p-4 border border-slate-200">
+                    <div class="mb-3">
+                        <span class="text-xs font-bold text-slate-700 block">Komposisi Suara Masuk Berdasarkan Kategori</span>
+                        <span class="text-[11px] text-slate-400">Proporsi suara yang masuk ke kotak suara</span>
+                    </div>
+                    <div class="relative h-60 w-full">
+                        <canvas id="categoryDoughnutChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Rekapitulasi & Grafik Partisipasi Per Kelas (Siswa) -->
+        <div class="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Grafik & Rekapitulasi Partisipasi Per Kelas Siswa</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Pantau capaian persentase dan jumlah suara masuk untuk setiap rombel kelas</p>
+                </div>
+                <div class="text-xs text-slate-500 font-medium">
+                    Total: <strong class="text-slate-900 font-bold">{{ $classesStats->count() }}</strong> Kelas
+                </div>
+            </div>
+
+            <!-- Graphic Bar Chart for Classes -->
+            <div class="bg-slate-50/70 rounded-2xl p-4 border border-slate-200 mb-6">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <span class="text-xs font-bold text-slate-700 block">Grafik Batang Persentase Suara Masuk Per Kelas</span>
+                        <span class="text-[11px] text-slate-400">Urutan tingkat kehadiran siswa dari tiap rombel</span>
+                    </div>
+                </div>
+                <div class="relative w-full" style="height: {{ max(280, min(500, $classesStats->count() * 26)) }}px;">
+                    <canvas id="classesBarChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Detailed Classes Table -->
+            <div class="overflow-x-auto border border-slate-200 rounded-2xl">
+                <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-50 text-slate-600 uppercase tracking-wider font-bold border-b border-slate-200">
+                        <tr>
+                            <th class="px-4 py-3 w-12 text-center">No</th>
+                            <th class="px-4 py-3">Nama Kelas</th>
+                            <th class="px-4 py-3 text-right">Total DPT</th>
+                            <th class="px-4 py-3 text-right">Sudah Memilih</th>
+                            <th class="px-4 py-3 text-right">Belum Memilih</th>
+                            <th class="px-4 py-3 w-48">Persentase Partisipasi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
+                        @forelse ($classesStats as $index => $stat)
+                            <tr class="hover:bg-slate-50/80 transition-colors">
+                                <td class="px-4 py-2.5 text-center font-bold text-slate-400">{{ $index + 1 }}</td>
+                                <td class="px-4 py-2.5 font-bold text-slate-900">{{ $stat->class }}</td>
+                                <td class="px-4 py-2.5 text-right font-semibold">{{ $stat->total }}</td>
+                                <td class="px-4 py-2.5 text-right font-bold text-emerald-600">{{ $stat->voted }}</td>
+                                <td class="px-4 py-2.5 text-right font-semibold text-amber-600">{{ $stat->unvoted }}</td>
+                                <td class="px-4 py-2.5">
+                                    <div class="flex items-center space-x-2.5">
+                                        <div class="flex-1 bg-slate-200 rounded-full h-2 overflow-hidden">
+                                            <div class="h-full rounded-full transition-all duration-500 {{ $stat->percentage >= 80 ? 'bg-emerald-500' : ($stat->percentage >= 50 ? 'bg-indigo-600' : 'bg-amber-500') }}" style="width: {{ $stat->percentage }}%"></div>
+                                        </div>
+                                        <span class="font-extrabold text-xs {{ $stat->percentage >= 80 ? 'text-emerald-700' : ($stat->percentage >= 50 ? 'text-indigo-700' : 'text-amber-700') }}">
+                                            {{ $stat->percentage }}%
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="6" class="px-4 py-6 text-center text-slate-400">Belum ada data kelas siswa.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                    @if($classesStats->isNotEmpty())
+                        <tfoot class="bg-slate-100/90 font-bold text-slate-800 border-t-2 border-slate-300">
+                            <tr>
+                                <td colspan="2" class="px-4 py-3.5 font-black uppercase text-slate-900">Total Kelas Siswa ({{ $classesStats->count() }} Kelas)</td>
+                                <td class="px-4 py-3.5 font-black text-right text-slate-900">{{ number_format($classesStats->sum('total'), 0, ',', '.') }}</td>
+                                <td class="px-4 py-3.5 font-black text-right text-emerald-700">{{ number_format($classesStats->sum('voted'), 0, ',', '.') }}</td>
+                                <td class="px-4 py-3.5 font-black text-right text-amber-700">{{ number_format($classesStats->sum('unvoted'), 0, ',', '.') }}</td>
+                                <td class="px-4 py-3.5 font-black text-indigo-700">
+                                    <div class="flex items-center space-x-2.5">
+                                        <div class="flex-1 bg-slate-300 rounded-full h-2.5 overflow-hidden">
+                                            <div class="h-full bg-indigo-600 rounded-full" style="width: {{ $siswaStats->percentage }}%"></div>
+                                        </div>
+                                        <span class="font-black text-xs text-indigo-700">{{ $siswaStats->percentage }}%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tfoot>
+                    @endif
+                </table>
+            </div>
+        </div>
+
+        <!-- Section 4: Breakdown Guru (Mapel) & Tendik (Unit) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Guru per Mapel -->
+            <div class="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-base">👨‍🏫</span>
+                        <h4 class="text-sm font-bold text-slate-900">Partisipasi Guru per Mapel</h4>
+                    </div>
+                    <span class="text-xs text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-200">
+                        {{ $guruStats->percentage }}% Total
+                    </span>
+                </div>
+                <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 text-slate-600 uppercase font-bold border-b border-slate-200">
+                            <tr>
+                                <th class="px-3 py-2">Mata Pelajaran / Tugas</th>
+                                <th class="px-3 py-2 text-right">DPT</th>
+                                <th class="px-3 py-2 text-right">Hadir</th>
+                                <th class="px-3 py-2 text-right">%</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @forelse ($guruClassStats as $g)
+                                <tr class="hover:bg-slate-50/60">
+                                    <td class="px-3 py-2 font-semibold text-slate-800">{{ $g->class }}</td>
+                                    <td class="px-3 py-2 text-right text-slate-600">{{ $g->total }}</td>
+                                    <td class="px-3 py-2 text-right font-bold text-emerald-600">{{ $g->voted }}</td>
+                                    <td class="px-3 py-2 text-right font-bold text-indigo-600">{{ $g->percentage }}%</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="px-3 py-4 text-center text-slate-400">Belum ada rincian data mapel guru.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Tendik per Unit -->
+            <div class="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-base">💼</span>
+                        <h4 class="text-sm font-bold text-slate-900">Partisipasi Tendik per Unit Kerja</h4>
+                    </div>
+                    <span class="text-xs text-amber-700 font-bold bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200">
+                        {{ $tendikStats->percentage }}% Total
+                    </span>
+                </div>
+                <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-50 text-slate-600 uppercase font-bold border-b border-slate-200">
+                            <tr>
+                                <th class="px-3 py-2">Unit Kerja / Jabatan</th>
+                                <th class="px-3 py-2 text-right">DPT</th>
+                                <th class="px-3 py-2 text-right">Hadir</th>
+                                <th class="px-3 py-2 text-right">%</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @forelse ($tendikClassStats as $t)
+                                <tr class="hover:bg-slate-50/60">
+                                    <td class="px-3 py-2 font-semibold text-slate-800">{{ $t->class }}</td>
+                                    <td class="px-3 py-2 text-right text-slate-600">{{ $t->total }}</td>
+                                    <td class="px-3 py-2 text-right font-bold text-amber-600">{{ $t->voted }}</td>
+                                    <td class="px-3 py-2 text-right font-bold text-indigo-600">{{ $t->percentage }}%</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="px-3 py-4 text-center text-slate-400">Belum ada rincian data unit tendik.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- TAB 2: DAFTAR HADIR PEMILIH                -->
     <!-- ========================================== -->
     <div x-show="activeTab === 'daftar-hadir'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" class="space-y-6">
         <!-- Summary Stats Cards -->
@@ -565,3 +1015,233 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    let hitungCepatCharts = {};
+
+    window.renderHitungCepatCharts = function() {
+        if (typeof Chart === 'undefined') return;
+
+        // 1. Paslon Chart
+        const paslonCtx = document.getElementById('paslonChart');
+        if (paslonCtx) {
+            if (hitungCepatCharts.paslon) {
+                hitungCepatCharts.paslon.destroy();
+            }
+            const candidates = @js($candidates);
+            const labels = candidates.map(c => 'Paslon ' + String(c.candidate_number).padStart(2, '0'));
+            const data = candidates.map(c => c.ballots_count);
+            const colors = candidates.map(c => c.card_color || '#4f46e5');
+
+            hitungCepatCharts.paslon = new Chart(paslonCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Perolehan Suara',
+                        data: data,
+                        backgroundColor: colors,
+                        borderRadius: 10,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    const c = candidates[ctx.dataIndex];
+                                    return ` ${ctx.raw} Suara (${c ? c.percentage : 0}%)`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: { precision: 0, font: { family: 'Plus Jakarta Sans', weight: 'bold' } },
+                            grid: { color: '#f1f5f9' }
+                        },
+                        x: {
+                            ticks: { font: { family: 'Plus Jakarta Sans', weight: 'bold' } },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 2. Category Bar Chart (Partisipasi %)
+        const catBarCtx = document.getElementById('categoryBarChart');
+        if (catBarCtx) {
+            if (hitungCepatCharts.catBar) {
+                hitungCepatCharts.catBar.destroy();
+            }
+            hitungCepatCharts.catBar = new Chart(catBarCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Guru', 'Tendik', 'Siswa'],
+                    datasets: [{
+                        label: 'Partisipasi (%)',
+                        data: [
+                            {{ $guruStats->percentage }},
+                            {{ $tendikStats->percentage }},
+                            {{ $siswaStats->percentage }}
+                        ],
+                        backgroundColor: ['#059669', '#d97706', '#4f46e5'],
+                        borderRadius: 10,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => ` ${ctx.raw}% Kehadiran`
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: (val) => val + '%',
+                                font: { family: 'Plus Jakarta Sans', weight: 'bold' }
+                            },
+                            grid: { color: '#f1f5f9' }
+                        },
+                        x: {
+                            ticks: { font: { family: 'Plus Jakarta Sans', weight: 'bold' } },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 3. Category Doughnut Chart (Komposisi Suara Masuk)
+        const catPieCtx = document.getElementById('categoryDoughnutChart');
+        if (catPieCtx) {
+            if (hitungCepatCharts.catPie) {
+                hitungCepatCharts.catPie.destroy();
+            }
+            const votedGuru = {{ $guruStats->voted }};
+            const votedTendik = {{ $tendikStats->voted }};
+            const votedSiswa = {{ $siswaStats->voted }};
+            const hasVotes = (votedGuru + votedTendik + votedSiswa) > 0;
+
+            hitungCepatCharts.catPie = new Chart(catPieCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Guru', 'Tendik', 'Siswa'],
+                    datasets: [{
+                        data: hasVotes ? [votedGuru, votedTendik, votedSiswa] : [1, 1, 1],
+                        backgroundColor: hasVotes ? ['#059669', '#d97706', '#4f46e5'] : ['#e2e8f0', '#e2e8f0', '#e2e8f0'],
+                        borderWidth: 3,
+                        borderColor: '#ffffff',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '68%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                font: { family: 'Plus Jakarta Sans', weight: 'bold', size: 11 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    if (!hasVotes) return ' Belum ada suara masuk';
+                                    return ` ${ctx.label}: ${ctx.raw} suara`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 4. Classes Bar Chart (Partisipasi Per Kelas Siswa)
+        const classesCtx = document.getElementById('classesBarChart');
+        if (classesCtx) {
+            if (hitungCepatCharts.classes) {
+                hitungCepatCharts.classes.destroy();
+            }
+            const classesStats = @js($classesStats);
+            const labels = classesStats.map(s => s.class);
+            const percentages = classesStats.map(s => s.percentage);
+            const colors = percentages.map(p => p >= 80 ? '#059669' : (p >= 50 ? '#4f46e5' : '#d97706'));
+
+            hitungCepatCharts.classes = new Chart(classesCtx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Persentase Hadir (%)',
+                        data: percentages,
+                        backgroundColor: colors,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (ctx) => {
+                                    const stat = classesStats[ctx.dataIndex];
+                                    return ` ${ctx.raw}% (${stat.voted} dari ${stat.total} pemilih)`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: (val) => val + '%',
+                                font: { family: 'Plus Jakarta Sans', weight: 'bold' }
+                            },
+                            grid: { color: '#f1f5f9' }
+                        },
+                        y: {
+                            ticks: {
+                                font: { family: 'Plus Jakarta Sans', weight: 'bold', size: 11 },
+                                autoSkip: false
+                            },
+                            grid: { display: false }
+                        }
+                    }
+                }
+            });
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            if (window.renderHitungCepatCharts) {
+                window.renderHitungCepatCharts();
+            }
+        }, 150);
+    });
+</script>
+@endpush

@@ -42,12 +42,67 @@ class BeritaAcaraController extends Controller
         // Determine winner
         $winner = $candidates->sortByDesc('ballots_count')->first();
 
-        // Class breakdown for Berita Acara (Khusus Siswa)
+        // Category-based participation stats (Guru, Tendik, Siswa)
+        $categoryStats = Voter::selectRaw('category, count(*) as total, sum(case when has_voted = 1 then 1 else 0 end) as voted')
+            ->groupBy('category')
+            ->get()
+            ->map(function ($item) {
+                $item->unvoted = max(0, $item->total - $item->voted);
+                $item->percentage = $item->total > 0 ? round(($item->voted / $item->total) * 100, 1) : 0;
+                $item->label = Voter::CATEGORIES[$item->category] ?? ucfirst($item->category);
+
+                return $item;
+            })
+            ->keyBy('category');
+
+        $guruStats = $categoryStats->get(Voter::CATEGORY_GURU, (object) [
+            'total' => 0, 'voted' => 0, 'unvoted' => 0, 'percentage' => 0, 'label' => 'Guru',
+        ]);
+        $tendikStats = $categoryStats->get(Voter::CATEGORY_TENDIK, (object) [
+            'total' => 0, 'voted' => 0, 'unvoted' => 0, 'percentage' => 0, 'label' => 'Tenaga Kependidikan',
+        ]);
+        $siswaStats = $categoryStats->get(Voter::CATEGORY_SISWA, (object) [
+            'total' => 0, 'voted' => 0, 'unvoted' => 0, 'percentage' => 0, 'label' => 'Siswa',
+        ]);
+
+        // Class breakdown for Siswa (Khusus Siswa)
         $classesStats = Voter::where('category', Voter::CATEGORY_SISWA)
             ->selectRaw("COALESCE(NULLIF(TRIM(class), ''), '[Tanpa Kelas]') as class, count(*) as total, sum(case when has_voted = 1 then 1 else 0 end) as voted")
             ->groupBy('class')
             ->orderByRaw("CASE WHEN class = '[Tanpa Kelas]' THEN 1 ELSE 0 END, LENGTH(class), class")
-            ->get();
+            ->get()
+            ->map(function ($item) {
+                $item->unvoted = max(0, $item->total - $item->voted);
+                $item->percentage = $item->total > 0 ? round(($item->voted / $item->total) * 100, 1) : 0;
+
+                return $item;
+            });
+
+        // Mapel breakdown for Guru
+        $guruClassStats = Voter::where('category', Voter::CATEGORY_GURU)
+            ->selectRaw("COALESCE(NULLIF(TRIM(class), ''), '[Tanpa Mapel]') as class, count(*) as total, sum(case when has_voted = 1 then 1 else 0 end) as voted")
+            ->groupBy('class')
+            ->orderBy('class')
+            ->get()
+            ->map(function ($item) {
+                $item->unvoted = max(0, $item->total - $item->voted);
+                $item->percentage = $item->total > 0 ? round(($item->voted / $item->total) * 100, 1) : 0;
+
+                return $item;
+            });
+
+        // Unit breakdown for Tendik
+        $tendikClassStats = Voter::where('category', Voter::CATEGORY_TENDIK)
+            ->selectRaw("COALESCE(NULLIF(TRIM(class), ''), '[Tanpa Unit]') as class, count(*) as total, sum(case when has_voted = 1 then 1 else 0 end) as voted")
+            ->groupBy('class')
+            ->orderBy('class')
+            ->get()
+            ->map(function ($item) {
+                $item->unvoted = max(0, $item->total - $item->voted);
+                $item->percentage = $item->total > 0 ? round(($item->voted / $item->total) * 100, 1) : 0;
+
+                return $item;
+            });
 
         // Tab 1: Daftar Hadir Query & Filters
         $attendeesQuery = Voter::query();
@@ -110,7 +165,7 @@ class BeritaAcaraController extends Controller
             ->pluck('count', 'class');
 
         $categories = Voter::CATEGORIES;
-        $activeTab = $request->input('tab', 'daftar-hadir');
+        $activeTab = $request->input('tab', 'hitung-cepat');
 
         return view('admin.laporan.index', compact(
             'setting',
@@ -121,7 +176,13 @@ class BeritaAcaraController extends Controller
             'totalBallots',
             'candidates',
             'winner',
+            'categoryStats',
+            'guruStats',
+            'tendikStats',
+            'siswaStats',
             'classesStats',
+            'guruClassStats',
+            'tendikClassStats',
             'attendees',
             'classes',
             'classesCounts',

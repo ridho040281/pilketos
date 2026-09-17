@@ -224,4 +224,72 @@ class LaporanTest extends TestCase
 
         $response->assertRedirect(route('admin.laporan.index', ['tab' => 'berita-acara']));
     }
+
+    public function test_admin_can_view_hitung_cepat_tab_with_category_and_class_stats(): void
+    {
+        // Guru
+        Voter::create([
+            'nisn' => 'G01',
+            'name' => 'Guru Matematika 1',
+            'category' => 'guru',
+            'class' => 'Matematika',
+            'passcode' => 'GURU01',
+            'has_voted' => true,
+            'voted_at' => now(),
+        ]);
+        Voter::create([
+            'nisn' => 'G02',
+            'name' => 'Guru Biologi 1',
+            'category' => 'guru',
+            'class' => 'Biologi',
+            'passcode' => 'GURU02',
+            'has_voted' => false,
+        ]);
+
+        // Tendik
+        Voter::create([
+            'nisn' => 'T01',
+            'name' => 'Tata Usaha 1',
+            'category' => 'tendik',
+            'class' => 'Staf TU',
+            'passcode' => 'TEND01',
+            'has_voted' => true,
+            'voted_at' => now(),
+        ]);
+
+        // Siswa
+        Voter::create([
+            'nisn' => 'S01',
+            'name' => 'Siswa 1',
+            'category' => 'siswa',
+            'class' => 'X-A',
+            'passcode' => 'SISW01',
+            'has_voted' => true,
+            'voted_at' => now(),
+        ]);
+        Voter::create([
+            'nisn' => 'S02',
+            'name' => 'Siswa 2',
+            'category' => 'siswa',
+            'class' => 'X-B',
+            'passcode' => 'SISW02',
+            'has_voted' => false,
+        ]);
+
+        $response = $this->actingAs($this->admin)->get(route('admin.laporan.index', ['tab' => 'hitung-cepat']));
+
+        $response->assertStatus(200);
+        $response->assertSee('Hitung Cepat');
+        $response->assertSee('Grafik Live');
+        $response->assertSee('Perolehan Suara & Statistik Partisipasi Pemilih', false);
+        $response->assertSee('Tenaga Kependidikan (Tendik)');
+        $response->assertSee('X-A');
+        $response->assertSee('X-B');
+        $response->assertSee('Partisipasi Guru per Mapel');
+        $response->assertSee('Partisipasi Tendik per Unit Kerja');
+        $response->assertSee('paslonChart');
+        $response->assertSee('classesBarChart');
+        $response->assertSee('categoryBarChart');
+        $response->assertSee('categoryDoughnutChart');
+    }
 }

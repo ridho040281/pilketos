@@ -29,8 +29,11 @@ class DashboardController extends Controller
             ->orderBy('candidate_number', 'asc')
             ->get();
 
-        // Class-based participation stats
-        $classesStats = Voter::selectRaw('class, count(*) as total, sum(case when has_voted = 1 then 1 else 0 end) as voted')
+        // Class-based participation stats (Khusus Siswa)
+        $classesStats = Voter::where('category', Voter::CATEGORY_SISWA)
+            ->whereNotNull('class')
+            ->where('class', '!=', '')
+            ->selectRaw('class, count(*) as total, sum(case when has_voted = 1 then 1 else 0 end) as voted')
             ->groupBy('class')
             ->orderBy('class')
             ->get()

@@ -214,6 +214,19 @@
                         </tr>
                     @endforelse
                 </tbody>
+                @if($classesStats->isNotEmpty())
+                    <tfoot class="bg-slate-100/90 font-bold text-slate-800 border-t-2 border-slate-300">
+                        <tr>
+                            <td class="px-4 py-3.5 font-black uppercase text-slate-900">Total Siswa ({{ $classesStats->count() }} Kelas)</td>
+                            <td class="px-4 py-3.5 font-black text-slate-900">{{ number_format($classesStats->sum('total'), 0, ',', '.') }}</td>
+                            <td class="px-4 py-3.5 font-black text-emerald-700">{{ number_format($classesStats->sum('voted'), 0, ',', '.') }}</td>
+                            <td class="px-4 py-3.5 font-black text-amber-700">{{ number_format($classesStats->sum('total') - $classesStats->sum('voted'), 0, ',', '.') }}</td>
+                            <td class="px-4 py-3.5 font-black text-indigo-700">
+                                {{ $classesStats->sum('total') > 0 ? round(($classesStats->sum('voted') / $classesStats->sum('total')) * 100, 1) : 0 }}%
+                            </td>
+                        </tr>
+                    </tfoot>
+                @endif
             </table>
         </div>
     </div>

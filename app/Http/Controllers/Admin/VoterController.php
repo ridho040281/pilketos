@@ -52,6 +52,8 @@ class VoterController extends Controller
         }
 
         $voters = $query->orderBy('category')->orderBy('class')->orderBy('name')->paginate(25)->withQueryString();
+        $filteredCount = $voters->total();
+        $isFiltered = $request->filled('search') || $request->filled('category') || $request->filled('class') || $request->filled('status');
         $classes = Voter::whereNotNull('class')->where('class', '!=', '')->distinct()->orderBy('class')->pluck('class');
 
         $categoryClasses = [
@@ -84,6 +86,8 @@ class VoterController extends Controller
             'categoryClasses',
             'setting',
             'totalCount',
+            'filteredCount',
+            'isFiltered',
             'votedCount',
             'unvotedCount',
             'siswaCount',

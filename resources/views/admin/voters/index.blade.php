@@ -92,7 +92,17 @@
     <!-- Top Action Bar -->
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div id="voters-stats-container">
-            <h2 class="text-base font-bold text-slate-900">Daftar Pemilih Tetap ({{ number_format($totalCount, 0, ',', '.') }} DPT)</h2>
+            <div class="flex flex-wrap items-center gap-2">
+                <h2 class="text-base font-bold text-slate-900">Daftar Pemilih Tetap ({{ number_format($totalCount, 0, ',', '.') }} DPT)</h2>
+                @if(!empty($isFiltered))
+                    <span class="px-2.5 py-0.5 rounded-lg bg-indigo-600 text-white font-bold text-xs shadow-sm shadow-indigo-600/20">
+                        Terfilter: {{ number_format($filteredCount, 0, ',', '.') }} Pemilih
+                        @if(request('class'))
+                            (Kelas {{ request('class') }})
+                        @endif
+                    </span>
+                @endif
+            </div>
             <div class="flex flex-wrap items-center gap-2 text-xs mt-1">
                 <span class="px-2 py-0.5 rounded-lg bg-indigo-50 text-indigo-700 font-bold border border-indigo-100">🎓 Siswa: {{ number_format($siswaCount, 0, ',', '.') }}</span>
                 <span class="px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 font-bold border border-emerald-100">👨‍🏫 Guru: {{ number_format($guruCount, 0, ',', '.') }}</span>

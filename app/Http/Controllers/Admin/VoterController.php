@@ -40,7 +40,13 @@ class VoterController extends Controller
         }
 
         if ($class = $request->input('class')) {
-            $query->where('class', $class);
+            if ($class === '[Tanpa Kelas]') {
+                $query->where(function ($q): void {
+                    $q->whereNull('class')->orWhereRaw("TRIM(class) = ''");
+                });
+            } else {
+                $query->where('class', $class);
+            }
         }
 
         if ($status = $request->input('status')) {
@@ -74,6 +80,16 @@ class VoterController extends Controller
             ->selectRaw('class, count(*) as count')
             ->groupBy('class')
             ->pluck('count', 'class');
+
+        $emptyClassCount = Voter::where(function ($q): void {
+            $q->whereNull('class')->orWhereRaw("TRIM(class) = ''");
+        })->count();
+
+        if ($emptyClassCount > 0) {
+            $classes->push('[Tanpa Kelas]');
+            $categoryClasses[Voter::CATEGORY_SISWA][] = '[Tanpa Kelas]';
+            $classesCounts['[Tanpa Kelas]'] = $emptyClassCount;
+        }
 
         $setting = ElectionSetting::current();
 

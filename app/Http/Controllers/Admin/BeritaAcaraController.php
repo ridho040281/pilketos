@@ -44,11 +44,9 @@ class BeritaAcaraController extends Controller
 
         // Class breakdown for Berita Acara (Khusus Siswa)
         $classesStats = Voter::where('category', Voter::CATEGORY_SISWA)
-            ->whereNotNull('class')
-            ->where('class', '!=', '')
-            ->selectRaw('class, count(*) as total, sum(case when has_voted = 1 then 1 else 0 end) as voted')
+            ->selectRaw("COALESCE(NULLIF(TRIM(class), ''), '[Tanpa Kelas]') as class, count(*) as total, sum(case when has_voted = 1 then 1 else 0 end) as voted")
             ->groupBy('class')
-            ->orderBy('class')
+            ->orderByRaw("CASE WHEN class = '[Tanpa Kelas]' THEN 1 ELSE 0 END, LENGTH(class), class")
             ->get();
 
         // Tab 1: Daftar Hadir Query & Filters

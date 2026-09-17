@@ -226,6 +226,19 @@ class DptDeduplicationService
             }
         }
 
+        // 5. Students with empty class
+        $emptyClass = [];
+        foreach ($students as $s) {
+            if (empty($s->class) || trim((string) $s->class) === '') {
+                $emptyClass[] = [
+                    'id' => $s->id,
+                    'name' => $s->name,
+                    'nisn' => $s->nisn ?? '-',
+                    'has_voted' => $s->has_voted ? 'Sudah' : 'Belum',
+                ];
+            }
+        }
+
         return [
             'total_siswa' => $totalSiswa,
             'classes' => $classes,
@@ -233,6 +246,7 @@ class DptDeduplicationService
             'duplicate_nisn' => $duplicateNisn,
             'duplicate_names' => $duplicateNames,
             'empty_nisn' => $emptyNisn,
+            'empty_class' => $emptyClass,
             'suspicious_names' => $suspiciousNames,
         ];
     }

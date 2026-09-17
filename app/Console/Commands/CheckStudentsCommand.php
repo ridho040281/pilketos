@@ -118,7 +118,19 @@ class CheckStudentsCommand extends Command
             }
         }
 
-        // 6. Cek Nama Dummy/Sampel
+        // 6. Cek Siswa Tanpa Kelas
+        if (! empty($result['empty_class'])) {
+            $this->newLine();
+            $this->error('⚠️ PERINGATAN: Ditemukan '.count($result['empty_class']).' Siswa TANPA KELAS (Kolom Kelas Kosong):');
+            $emptyClassRows = [];
+            foreach ($result['empty_class'] as $item) {
+                $emptyClassRows[] = [$item['id'], $item['name'], $item['nisn'], $item['has_voted']];
+            }
+            $this->table(['ID', 'Nama Siswa', 'NISN', 'Status Memilih'], $emptyClassRows);
+            $this->warn('👉 Ini kemungkinan besar yang menyebabkan selisih total siswa! Harap lengkapi kelasnya di menu DPT.');
+        }
+
+        // 7. Cek Nama Dummy/Sampel
         if (! empty($result['suspicious_names'])) {
             $this->newLine();
             $this->error('⚠️ Ditemukan data terindikasi Dummy / Akun Percobaan:');

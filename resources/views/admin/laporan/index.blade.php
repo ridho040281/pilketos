@@ -1017,12 +1017,20 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{{ asset('vendor/chartjs/chart.umd.min.js') }}"></script>
+<script>
+    if (typeof Chart === 'undefined') {
+        document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js"><\/script>');
+    }
+</script>
 <script>
     let hitungCepatCharts = {};
 
     window.renderHitungCepatCharts = function() {
-        if (typeof Chart === 'undefined') return;
+        if (typeof Chart === 'undefined') {
+            setTimeout(window.renderHitungCepatCharts, 200);
+            return;
+        }
 
         // 1. Paslon Chart
         const paslonCtx = document.getElementById('paslonChart');

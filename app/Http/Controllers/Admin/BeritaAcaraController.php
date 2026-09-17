@@ -105,6 +105,12 @@ class BeritaAcaraController extends Controller
             }
         }
 
+        $classesCounts = Voter::whereNotNull('class')
+            ->where('class', '!=', '')
+            ->selectRaw('class, count(*) as count')
+            ->groupBy('class')
+            ->pluck('count', 'class');
+
         $categories = Voter::CATEGORIES;
         $activeTab = $request->input('tab', 'daftar-hadir');
 
@@ -120,6 +126,7 @@ class BeritaAcaraController extends Controller
             'classesStats',
             'attendees',
             'classes',
+            'classesCounts',
             'categoryClasses',
             'categories',
             'activeTab'

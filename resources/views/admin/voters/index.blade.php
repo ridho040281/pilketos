@@ -13,6 +13,7 @@
     filterStatus: '{{ addslashes(request('status', '')) }}',
     categoryClasses: {{ \Illuminate\Support\Js::from($categoryClasses) }},
     allClasses: {{ \Illuminate\Support\Js::from($classes) }},
+    classCounts: {{ \Illuminate\Support\Js::from($classesCounts ?? []) }},
     init() {
         const initialClass = '{{ addslashes(request('class', '')) }}';
         if (initialClass) {
@@ -189,10 +190,10 @@
             </select>
 
             <!-- Class Filter -->
-            <select name="class" x-model="filterClass" @change="fetchVoters()" class="py-2 px-3 rounded-xl border border-slate-300 text-xs focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white cursor-pointer">
+            <select name="class" x-model="filterClass" @change="fetchVoters()" class="py-2 px-3 rounded-xl border border-slate-300 text-xs focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 bg-white cursor-pointer font-medium">
                 <option value="" x-text="classPlaceholder">Semua Kelas/Mapel</option>
                 <template x-for="c in availableClasses" :key="c">
-                    <option :value="c" x-text="c" :selected="filterClass === c"></option>
+                    <option :value="c" x-text="classCounts[c] ? `${c} (${classCounts[c]})` : c" :selected="filterClass === c"></option>
                 </template>
             </select>
 

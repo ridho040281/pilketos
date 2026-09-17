@@ -150,4 +150,32 @@ class DptStudentDeduplicationTest extends TestCase
         $this->assertTrue($remaining->has_voted);
         $this->assertEquals('7777777777', $remaining->nisn);
     }
+
+    public function test_fix_tendik_moves_miscategorized_staff_to_tendik(): void
+    {
+        $staff = Voter::create([
+            'nisn' => '198804152019032008',
+            'name' => 'Sri Wahyuni, S.Kom.',
+            'category' => Voter::CATEGORY_SISWA,
+            'class' => 'Tata Usaha',
+            'passcode' => 'PASSTAF1',
+            'has_voted' => false,
+        ]);
+
+        $this->assertEquals(1, Voter::where('category', Voter::CATEGORY_SISWA)->count());
+        $this->assertEquals(0, Voter::where('category', Voter::CATEGORY_TENDIK)->count());
+
+        $this->artisan('dpt:check-siswa')
+            ->expectsOutputToContain('Pegawai / Staf Tercatat di Kategori Siswa')
+            ->expectsOutputToContain('Tata Usaha')
+            ->assertSuccessful();
+
+        $this->artisan('dpt:fix-tendik')
+            ->expectsOutputToContain('Sukses memindahkan 1 orang')
+            ->assertSuccessful();
+
+        $this->assertEquals(0, Voter::where('category', Voter::CATEGORY_SISWA)->count());
+        $this->assertEquals(1, Voter::where('category', Voter::CATEGORY_TENDIK)->count());
+        $this->assertEquals(Voter::CATEGORY_TENDIK, $staff->fresh()->category);
+    }
 }

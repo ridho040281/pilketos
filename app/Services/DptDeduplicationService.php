@@ -239,6 +239,49 @@ class DptDeduplicationService
             }
         }
 
+        // 6. Non-student classes (Staff, TU, Pegawai, etc. categorized as siswa)
+        $nonStudentClasses = [];
+        $knownStaffWords = ['tata usaha', 'tu', 'staf', 'staff', 'pegawai', 'guru', 'kepala', 'laboran', 'perpustakaan', 'keamanan', 'satpam', 'kebersihan', 'operator', 'umum'];
+        foreach ($students as $s) {
+            $cls = trim((string) ($s->class ?? ''));
+            $lowerCls = strtolower($cls);
+            $isNonStudent = false;
+
+            foreach ($knownStaffWords as $word) {
+                if (str_contains($lowerCls, $word)) {
+                    $isNonStudent = true;
+                    break;
+                }
+            }
+
+            if (! $isNonStudent && ! empty($cls) && ! preg_match('/^([0-9]+|VII|VIII|IX|X|XI|XII)/i', $cls)) {
+                $isNonStudent = true;
+            }
+
+            if ($isNonStudent) {
+                $nonStudentClasses[] = [
+                    'id' => $s->id,
+                    'name' => $s->name,
+                    'class' => $s->class ?? '-',
+                    'nisn' => $s->nisn ?? '-',
+                    'has_voted' => $s->has_voted ? 'Sudah' : 'Belum',
+                ];
+            }
+        }
+
+        $filteredStudents = [];
+        if (! empty($classFilter)) {
+            foreach ($students as $s) {
+                $filteredStudents[] = [
+                    'id' => $s->id,
+                    'name' => $s->name,
+                    'class' => $s->class ?? '-',
+                    'nisn' => $s->nisn ?? '-',
+                    'has_voted' => $s->has_voted ? 'Sudah' : 'Belum',
+                ];
+            }
+        }
+
         return [
             'total_siswa' => $totalSiswa,
             'classes' => $classes,
@@ -247,8 +290,52 @@ class DptDeduplicationService
             'duplicate_names' => $duplicateNames,
             'empty_nisn' => $emptyNisn,
             'empty_class' => $emptyClass,
+            'non_student_classes' => $nonStudentClasses,
+            'filtered_students' => $filteredStudents,
             'suspicious_names' => $suspiciousNames,
         ];
+    }
+
+    /**
+     * Reclassify staff/tendik currently miscategorized as students.
+     *
+     * @return array{
+     *     fixed_count: int,
+     *     details: array<int, array<string, mixed>>
+     * }
+     */
+    public static function fixMiscategorizedTendik(): array
+    {
+        return DB::transaction(function () {
+            $candidates = Voter::where('category', Voter::CATEGORY_SISWA)
+                ->where(function ($q): void {
+                    $words = ['tata usaha', 'tu', 'staf', 'staff', 'pegawai', 'laboran', 'perpustakaan', 'keamanan', 'satpam', 'kebersihan', 'operator'];
+                    foreach ($words as $w) {
+                        $q->orWhere('class', 'like', "%{$w}%");
+                    }
+                })
+                ->get();
+
+            $fixedCount = 0;
+            $details = [];
+
+            foreach ($candidates as $v) {
+                $details[] = [
+                    'id' => $v->id,
+                    'name' => $v->name,
+                    'class' => $v->class,
+                    'nisn' => $v->nisn ?? '-',
+                ];
+
+                $v->update(['category' => Voter::CATEGORY_TENDIK]);
+                $fixedCount++;
+            }
+
+            return [
+                'fixed_count' => $fixedCount,
+                'details' => $details,
+            ];
+        });
     }
 
     /**

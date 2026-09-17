@@ -118,7 +118,41 @@ class CheckStudentsCommand extends Command
             }
         }
 
-        // 6. Cek Siswa Tanpa Kelas
+        // 6. Tampilkan Anggota Kelas jika difilter
+        if (! empty($classFilter) && ! empty($result['filtered_students'])) {
+            $this->newLine();
+            $this->info("👥 Daftar Pemilih di Kelas \"{$classFilter}\":");
+            $filterRows = [];
+            foreach ($result['filtered_students'] as $item) {
+                $filterRows[] = [$item['id'], $item['name'], $item['nisn'], $item['class'], $item['has_voted']];
+            }
+            $this->table(['ID', 'Nama Pemilih', 'NISN / NIP', 'Kelas', 'Status Memilih'], $filterRows);
+        }
+
+        // 7. Cek Pegawai / Unit Kerja yang salah masuk kategori Siswa (seperti Tata Usaha)
+        if (! empty($result['non_student_classes'])) {
+            $this->newLine();
+            $this->error('🎯 PENYEBAB SELISIH DITEMUKAN: Pegawai / Staf Tercatat di Kategori Siswa!');
+            $nonStudentRows = [];
+            foreach ($result['non_student_classes'] as $item) {
+                $nonStudentRows[] = [
+                    $item['id'],
+                    $item['name'],
+                    $item['class'],
+                    $item['nisn'],
+                    $item['has_voted'],
+                ];
+            }
+            $this->table(['ID', 'Nama Pemilih', 'Kelas / Unit', 'NIP / NISN', 'Status Memilih'], $nonStudentRows);
+            $this->newLine();
+            $this->line('👉 <fg=yellow;options=bold>Penyebab:</> Nama di atas adalah pegawai/staf tapi kategorinya tersimpan sebagai <fg=cyan>Siswa</>.');
+            $this->line('   Hal inilah yang menyebabkan total siswa di DPT menjadi 1.243 (lebih 1 orang dari 35 kelas manual Anda)!');
+            $this->line('👉 <fg=green;options=bold>Solusi Cepat:</> Jalankan perintah berikut untuk memindahkannya ke kategori Tendik:');
+            $this->line('   <fg=cyan;options=bold>php artisan dpt:fix-tendik</>');
+            $this->line('   Atau cari namanya di menu DPT web dan ubah kategorinya menjadi Tenaga Kependidikan.');
+        }
+
+        // 8. Cek Siswa Tanpa Kelas
         if (! empty($result['empty_class'])) {
             $this->newLine();
             $this->error('⚠️ PERINGATAN: Ditemukan '.count($result['empty_class']).' Siswa TANPA KELAS (Kolom Kelas Kosong):');
@@ -130,7 +164,7 @@ class CheckStudentsCommand extends Command
             $this->warn('👉 Ini kemungkinan besar yang menyebabkan selisih total siswa! Harap lengkapi kelasnya di menu DPT.');
         }
 
-        // 7. Cek Nama Dummy/Sampel
+        // 9. Cek Nama Dummy/Sampel
         if (! empty($result['suspicious_names'])) {
             $this->newLine();
             $this->error('⚠️ Ditemukan data terindikasi Dummy / Akun Percobaan:');

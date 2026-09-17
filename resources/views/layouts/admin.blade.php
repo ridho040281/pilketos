@@ -4,7 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Admin Panel') - Pilketos</title>
-    <link rel="icon" href="{{ \App\Models\ElectionSetting::current()->getFaviconUrl() }}">
+    @php
+        $adminSetting = $setting ?? \App\Models\ElectionSetting::current();
+    @endphp
+    <link rel="icon" href="{{ $adminSetting->getFaviconUrl() }}">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -60,9 +63,13 @@
             <!-- Brand -->
             <div class="h-16 px-6 flex items-center justify-between border-b border-slate-800">
                 <a href="{{ route('admin.dashboard') }}" class="flex items-center space-x-3">
-                    <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/30">
-                        P
-                    </div>
+                    @if ($adminSetting->getSchoolLogoUrl())
+                        <img src="{{ $adminSetting->getSchoolLogoUrl() }}" alt="Logo {{ $adminSetting->school_name }}" class="w-9 h-9 object-contain rounded-xl bg-white p-0.5 shadow-md shadow-slate-900/50">
+                    @else
+                        <div class="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-bold shadow-lg shadow-indigo-500/30">
+                            P
+                        </div>
+                    @endif
                     <div class="leading-tight">
                         <span class="block font-bold text-white text-base tracking-tight">PILKETOS</span>
                         <span class="block text-xs text-slate-400">Panel Panitia</span>

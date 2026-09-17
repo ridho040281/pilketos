@@ -128,9 +128,13 @@
     <!-- Top Header -->
     <header class="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-slate-800 pb-5">
         <div class="flex items-center space-x-4 text-center md:text-left">
-            <div class="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center font-black text-2xl text-white shadow-lg shadow-indigo-500/30">
-                P
-            </div>
+            @if ($setting->getSchoolLogoUrl())
+                <img src="{{ $setting->getSchoolLogoUrl() }}" alt="Logo {{ $setting->school_name }}" class="w-12 h-12 object-contain rounded-2xl bg-white p-1 shadow-lg shadow-indigo-950/40">
+            @else
+                <div class="w-12 h-12 rounded-2xl bg-indigo-600 flex items-center justify-center font-black text-2xl text-white shadow-lg shadow-indigo-500/30">
+                    P
+                </div>
+            @endif
             <div>
                 <span class="text-xs font-bold uppercase tracking-widest text-indigo-400 block">{{ $setting->school_name }}</span>
                 <h1 class="text-xl sm:text-2xl font-black tracking-tight text-white">{{ $setting->election_title }}</h1>

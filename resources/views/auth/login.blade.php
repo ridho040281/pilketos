@@ -7,9 +7,13 @@
     <div class="max-w-md w-full">
         <!-- Brand Header -->
         <div class="text-center mb-8">
-            <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-indigo-600 text-white font-black text-2xl flex items-center justify-center shadow-lg shadow-indigo-600/30">
-                P
-            </div>
+            @if ($setting->getSchoolLogoUrl())
+                <img class="mx-auto h-16 w-auto mb-3 object-contain drop-shadow-sm" src="{{ $setting->getSchoolLogoUrl() }}" alt="Logo {{ $setting->school_name }}">
+            @else
+                <div class="w-14 h-14 mx-auto mb-3 rounded-2xl bg-indigo-600 text-white font-black text-2xl flex items-center justify-center shadow-lg shadow-indigo-600/30">
+                    P
+                </div>
+            @endif
             <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Panel Panitia Pemilihan</h2>
             <p class="text-xs text-slate-500 mt-1">{{ $setting->school_name }} &bull; {{ $setting->election_title }}</p>
         </div>

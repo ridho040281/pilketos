@@ -222,4 +222,14 @@ class ElectionSetting extends Model
     {
         return $this->candidate_format_label === 'Calon';
     }
+
+    /**
+     * Get committee title for kop surat (e.g. 'PANITIA PEMILIHAN KETUA OSIS' or 'PANITIA PEMILIHAN KETUA DAN WAKIL KETUA OSIS').
+     */
+    public function getPanitiaTitleAttribute(): string
+    {
+        return $this->is_ketua_saja
+            ? 'PANITIA PEMILIHAN KETUA OSIS'
+            : 'PANITIA PEMILIHAN KETUA DAN WAKIL KETUA OSIS';
+    }
 }

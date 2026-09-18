@@ -33,14 +33,32 @@
         isFrozen: {{ $setting->show_quick_count ? 'false' : 'true' }},
         candidates: @js($candidates),
         chartInstance: null,
-        candidateImages: {},
         lastUpdated: '{{ now()->format('H:i:s') }}',
         
+        candidateImages: [],
+
         init() {
             this.updateClock();
             setInterval(() => this.updateClock(), 1000);
+            this.loadCandidateImages();
             this.initChart();
             setInterval(() => this.fetchLiveStats(), 4000);
+        },
+
+        loadCandidateImages() {
+            this.candidateImages = this.candidates.map((c) => {
+                const url = c.photo_url || (c.photo_path ? '{{ asset("storage") }}/' + c.photo_path : null);
+                if (!url) return null;
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                img.src = url;
+                img.onload = () => {
+                    if (this.chartInstance) {
+                        this.chartInstance.draw();
+                    }
+                };
+                return img;
+            });
         },
 
         updateClock() {
@@ -56,107 +74,105 @@
             }
         },
 
-        loadCandidateImages() {
-            this.candidates.forEach(c => {
-                if (c.photo_url && !this.candidateImages[c.id]) {
-                    const img = new Image();
-                    img.crossOrigin = 'anonymous';
-                    img.src = c.photo_url;
-                    img.onload = () => {
-                        this.candidateImages[c.id] = img;
-                        if (this.chartInstance) {
-                            this.chartInstance.draw();
-                        }
-                    };
-                }
-            });
-        },
-
         initChart() {
             const ctx = document.getElementById('quickCountChart');
             if (!ctx) return;
 
             const self = this;
-            this.loadCandidateImages();
-
             const labels = this.candidates.map(c => '{{ $setting->candidate_format_label }} ' + String(c.candidate_number).padStart(2, '0'));
-            const colors = this.candidates.map(c => c.card_color || c.color_tag || '#4f46e5');
+            const colors = this.candidates.map(c => c.color_tag || '#4f46e5');
             const data = this.candidates.map(c => c.ballots_count || 0);
 
-            // Custom Chart.js plugin to draw circular candidate photos directly above each bar
-            const candidateAvatarPlugin = {
-                id: 'candidateAvatar',
+            const candidateTopAvatarPlugin = {
+                id: 'candidateTopAvatarPlugin',
                 afterDatasetsDraw(chart) {
-                    const { ctx, chartArea } = chart;
+                    const ctx = chart.ctx;
                     const meta = chart.getDatasetMeta(0);
                     if (!meta || !meta.data) return;
 
-                    meta.data.forEach((bar, i) => {
-                        const candidate = self.candidates[i];
-                        if (!candidate) return;
+                    meta.data.forEach((bar, index) => {
+                        const cand = (self.candidates && self.candidates[index]) ? self.candidates[index] : null;
+                        if (!cand) return;
 
                         const x = bar.x;
-                        const barY = bar.y;
-                        const radius = Math.min(26, Math.max(18, Math.round((bar.width || 48) / 2.6)));
-                        const centerY = Math.max(chartArea.top + radius + 4, barY - radius - 10);
-                        const img = self.candidateImages[candidate.id];
-                        const borderColor = candidate.card_color || candidate.color_tag || '#6366f1';
+                        const y = bar.y;
+                        const radius = 24; // 48px diameter avatar circle
+                        const centerY = Math.max(chart.chartArea.top + radius + 4, y - radius - 12);
+                        const candColor = cand.color_tag || '#4f46e5';
 
                         ctx.save();
 
-                        // Drop shadow
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
-                        ctx.shadowBlur = 8;
+                        // 1. Draw glowing accent background circle
+                        ctx.beginPath();
+                        ctx.arc(x, centerY, radius + 3, 0, Math.PI * 2);
+                        ctx.fillStyle = candColor;
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                        ctx.shadowBlur = 10;
                         ctx.shadowOffsetY = 3;
+                        ctx.fill();
 
-                        // Base dark circle
+                        // 2. Draw white border ring base
+                        ctx.beginPath();
+                        ctx.arc(x, centerY, radius + 2, 0, Math.PI * 2);
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fill();
+
+                        // 3. Clip circular avatar area
+                        ctx.save();
                         ctx.beginPath();
                         ctx.arc(x, centerY, radius, 0, Math.PI * 2);
-                        ctx.fillStyle = '#0f172a';
-                        ctx.fill();
-                        ctx.shadowColor = 'transparent';
+                        ctx.closePath();
+                        ctx.clip();
 
-                        if (img && img.complete && img.naturalWidth > 0) {
-                            // Circular clipped photo (cover style)
-                            ctx.save();
-                            ctx.beginPath();
-                            ctx.arc(x, centerY, radius - 2, 0, Math.PI * 2);
-                            ctx.closePath();
-                            ctx.clip();
-
-                            const iw = img.naturalWidth;
-                            const ih = img.naturalHeight;
-                            const size = (radius - 2) * 2;
-                            let sx = 0, sy = 0, sWidth = iw, sHeight = ih;
-                            if (iw > ih) {
-                                sWidth = ih;
-                                sx = (iw - ih) / 2;
-                            } else if (ih > iw) {
-                                sHeight = iw;
-                                sy = (ih - iw) / 2;
+                        const img = self.candidateImages ? self.candidateImages[index] : null;
+                        if (img && img.complete && img.naturalWidth !== 0) {
+                            // Calculate centered & top-biased cover crop
+                            const aspect = img.naturalWidth / img.naturalHeight;
+                            let sx = 0, sy = 0, sWidth = img.naturalWidth, sHeight = img.naturalHeight;
+                            if (aspect > 1) {
+                                sWidth = img.naturalHeight;
+                                sx = (img.naturalWidth - sWidth) / 2;
+                            } else {
+                                sHeight = img.naturalWidth;
+                                sy = (img.naturalHeight - sHeight) * 0.15; // prioritize face at top
                             }
-                            ctx.drawImage(img, sx, sy, sWidth, sHeight, x - (radius - 2), centerY - (radius - 2), size, size);
-                            ctx.restore();
+                            ctx.drawImage(img, sx, sy, sWidth, sHeight, x - radius, centerY - radius, radius * 2, radius * 2);
                         } else {
-                            // Fallback badge with candidate number
-                            ctx.beginPath();
-                            ctx.arc(x, centerY, radius - 2, 0, Math.PI * 2);
-                            ctx.fillStyle = borderColor;
-                            ctx.fill();
-
+                            // Fallback stylish circular badge with candidate number
+                            ctx.fillStyle = '#0f172a';
+                            ctx.fillRect(x - radius, centerY - radius, radius * 2, radius * 2);
                             ctx.fillStyle = '#ffffff';
-                            ctx.font = `900 ${Math.round(radius * 0.9)}px 'Plus Jakarta Sans', sans-serif`;
+                            ctx.font = 'bold 15px "Plus Jakarta Sans", sans-serif';
                             ctx.textAlign = 'center';
                             ctx.textBaseline = 'middle';
-                            ctx.fillText(String(candidate.candidate_number).padStart(2, '0'), x, centerY);
+                            ctx.fillText(String(cand.candidate_number || (index + 1)).padStart(2, '0'), x, centerY);
                         }
+                        ctx.restore();
 
-                        // Circular ring border
+                        // 4. Draw crisp outer white border
                         ctx.beginPath();
                         ctx.arc(x, centerY, radius, 0, Math.PI * 2);
-                        ctx.lineWidth = 3;
-                        ctx.strokeStyle = borderColor;
+                        ctx.lineWidth = 2.5;
+                        ctx.strokeStyle = '#ffffff';
                         ctx.stroke();
+
+                        // 5. Draw candidate number mini-badge pill at bottom right
+                        const badgeRadius = 8.5;
+                        const badgeX = x + radius - 4;
+                        const badgeY = centerY + radius - 4;
+                        ctx.beginPath();
+                        ctx.arc(badgeX, badgeY, badgeRadius, 0, Math.PI * 2);
+                        ctx.fillStyle = candColor;
+                        ctx.fill();
+                        ctx.lineWidth = 1.5;
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.stroke();
+
+                        ctx.fillStyle = '#ffffff';
+                        ctx.font = 'bold 10px "Plus Jakarta Sans", sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(String(cand.candidate_number || (index + 1)), badgeX, badgeY);
 
                         ctx.restore();
                     });
@@ -180,7 +196,10 @@
                     maintainAspectRatio: false,
                     layout: {
                         padding: {
-                            top: 25
+                            top: 45,
+                            left: 10,
+                            right: 10,
+                            bottom: 0
                         }
                     },
                     plugins: {
@@ -204,7 +223,7 @@
                         }
                     }
                 },
-                plugins: [candidateAvatarPlugin]
+                plugins: [candidateTopAvatarPlugin]
             });
         },
 
@@ -227,20 +246,6 @@
                         this.chartInstance.data.labels = data.candidates.map(c => data.candidate_label + ' ' + String(c.number).padStart(2, '0'));
                     }
                     this.chartInstance.data.datasets[0].data = data.candidates.map(c => c.votes || 0);
-
-                    // Load any new photos if needed
-                    data.candidates.forEach(c => {
-                        if (c.photo_url && !this.candidateImages[c.id]) {
-                            const img = new Image();
-                            img.crossOrigin = 'anonymous';
-                            img.src = c.photo_url;
-                            img.onload = () => {
-                                this.candidateImages[c.id] = img;
-                                if (this.chartInstance) this.chartInstance.draw();
-                            };
-                        }
-                    });
-
                     this.chartInstance.update();
                 }
             } catch (err) {

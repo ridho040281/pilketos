@@ -1089,7 +1089,7 @@
         <div class="max-w-4xl mx-auto bg-white rounded-3xl p-6 sm:p-12 shadow-md border border-slate-200 text-slate-900 leading-relaxed font-serif">
             <!-- Kop Surat -->
             <div class="text-center border-b-4 border-double border-slate-900 pb-4 mb-6 font-sans">
-                <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-600">PANITIA PEMILIHAN {{ $setting->is_ketua_saja ? 'KETUA' : 'KETUA DAN WAKIL KETUA' }} OSIS</h3>
+                <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-600">{{ $setting->panitia_title }}</h3>
                 <h2 class="text-lg sm:text-2xl font-black uppercase tracking-tight text-slate-900 mt-0.5">{{ $setting->school_name }}</h2>
                 <p class="text-xs text-slate-600 mt-1">
                     {{ $setting->election_title }} &bull; Tahun Pelajaran {{ $setting->academic_year }}
@@ -1105,7 +1105,7 @@
             <!-- Paragraf Pembuka -->
             <div class="text-xs sm:text-sm text-justify space-y-3 mb-6 font-sans">
                 <p>
-                    Pada hari ini, <strong>{{ now()->translatedFormat('l') }}</strong> tanggal <strong>{{ now()->translatedFormat('d F Y') }}</strong>, bertempat di Lingkungan {{ $setting->school_name }}, telah diselenggarakan Rapat Pleno Terbuka Penghitungan dan Rekapitulasi Perolehan Suara Pemilihan Ketua dan Wakil Ketua OSIS Periode {{ $setting->academic_year }} yang dilaksanakan secara digital (E-Voting) dengan berasaskan <strong>Langsung, Umum, Bebas, Rahasia, Jujur, dan Adil (LUBER JURDIL)</strong>.
+                    Pada hari ini, <strong>{{ now()->translatedFormat('l') }}</strong> tanggal <strong>{{ now()->translatedFormat('d F Y') }}</strong>, bertempat di Lingkungan {{ $setting->school_name }}, telah diselenggarakan Rapat Pleno Terbuka Penghitungan dan Rekapitulasi Perolehan Suara Pemilihan {{ $setting->is_ketua_saja ? 'Ketua' : 'Ketua dan Wakil Ketua' }} OSIS Periode {{ $setting->academic_year }} yang dilaksanakan secara digital (E-Voting) dengan berasaskan <strong>Langsung, Umum, Bebas, Rahasia, Jujur, dan Adil (LUBER JURDIL)</strong>.
                 </p>
                 <p>
                     Berdasarkan data audit sistem elektronik kotak suara digital, diperoleh hasil rekapitulasi sebagai berikut:

@@ -44,7 +44,7 @@
     <div class="print-page max-w-5xl mx-auto bg-white rounded-3xl p-8 sm:p-12 shadow-xl border border-slate-200 text-slate-900 leading-relaxed">
         <!-- Kop Surat -->
         <div class="text-center border-b-4 border-double border-slate-900 pb-4 mb-6">
-            <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-600">PANITIA PEMILIHAN {{ $setting->is_ketua_saja ? 'KETUA' : 'KETUA DAN WAKIL KETUA' }} OSIS</h3>
+            <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-600">{{ $setting->panitia_title }}</h3>
             <h2 class="text-lg sm:text-2xl font-black uppercase tracking-tight text-slate-900 mt-0.5">{{ $setting->school_name }}</h2>
             <p class="text-xs text-slate-600 mt-1">
                 {{ $setting->election_title }} &bull; Tahun Pelajaran {{ $setting->academic_year }}
@@ -86,24 +86,24 @@
             <table class="w-full text-xs border border-slate-300">
                 <thead class="bg-slate-100 font-bold uppercase text-slate-700 text-center">
                     <tr>
-                        <th class="p-2 border border-slate-300 w-10 text-center">No</th>
-                        <th class="p-2 border border-slate-300 w-32 text-left whitespace-nowrap">NISN / NIP</th>
+                        <th class="p-2 border border-slate-300 w-10 text-center whitespace-nowrap">No</th>
+                        <th class="p-2 border border-slate-300 w-28 text-left whitespace-nowrap">NISN / NIP</th>
                         <th class="p-2 border border-slate-300 text-left whitespace-nowrap">Nama Lengkap</th>
                         <th class="p-2 border border-slate-300 w-20 text-center whitespace-nowrap">Kategori</th>
                         <th class="p-2 border border-slate-300 w-36 text-center whitespace-nowrap">Kelas/Mapel</th>
-                        <th class="p-2 border border-slate-300 w-10 text-center">L/P</th>
+                        <th class="p-2 border border-slate-300 w-10 text-center whitespace-nowrap">L/P</th>
                         <th class="p-2 border border-slate-300 w-36 text-center whitespace-nowrap">Tanda Tangan / Paraf</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-200">
                     @forelse ($attendees as $index => $voter)
                         <tr>
-                            <td class="p-2 border border-slate-300 text-center font-bold">{{ $index + 1 }}</td>
+                            <td class="p-2 border border-slate-300 text-center font-bold whitespace-nowrap">{{ $index + 1 }}</td>
                             <td class="p-2 border border-slate-300 font-mono text-[11px] whitespace-nowrap">{{ $voter->nisn ?: '-' }}</td>
-                            <td class="p-2 border border-slate-300 font-semibold text-slate-900 whitespace-nowrap">{{ $voter->name }}</td>
+                            <td class="p-2 border border-slate-300 font-semibold whitespace-nowrap">{{ $voter->name }}</td>
                             <td class="p-2 border border-slate-300 text-center capitalize text-[11px] whitespace-nowrap">{{ $voter->category_label }}</td>
                             <td class="p-2 border border-slate-300 text-center text-[11px] whitespace-nowrap px-3">{{ $voter->class ?: '-' }}</td>
-                            <td class="p-2 border border-slate-300 text-center font-bold">{{ $voter->gender ?: '-' }}</td>
+                            <td class="p-2 border border-slate-300 text-center font-bold whitespace-nowrap">{{ $voter->gender ?: '-' }}</td>
                             <td class="p-2 border border-slate-300 text-left text-[10px] text-slate-400 whitespace-nowrap">
                                 {{ $index + 1 }}. ......................
                             </td>

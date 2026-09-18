@@ -57,11 +57,15 @@ class ProyektorController extends Controller
 
                 return [
                     'id' => $candidate->id,
+                    'candidate_number' => $candidate->candidate_number,
                     'number' => $candidate->candidate_number,
                     'leader_name' => $candidate->leader_name,
                     'co_leader_name' => $candidate->co_leader_name,
                     'color_tag' => $candidate->color_tag ?? '#4f46e5',
+                    'card_color' => $candidate->card_color ?? $candidate->color_tag ?? '#4f46e5',
                     'photo_url' => $candidate->photo_url,
+                    'photo_path' => $candidate->photo_path,
+                    'ballots_count' => $count,
                     'votes' => $setting->show_quick_count ? $count : null,
                     'percentage' => $setting->show_quick_count ? $pct : null,
                 ];

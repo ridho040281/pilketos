@@ -35,7 +35,7 @@
                 candidateImages: [],
                 chartInstance: null,
                 lastUpdated: '{{ now()->format('H:i:s') }}',
-                chartMetric: 'votes', // 'votes' | 'percentage' | 'both'
+                chartMetric: 'both', // 'both' | 'votes' | 'percentage'
                 selectedCandidateIndex: null, // null | number
 
                 init() {
@@ -81,12 +81,12 @@
                     } else {
                         this.selectedCandidateIndex = index;
                     }
-                    this.updateChartData();
+                    this.updateChartData(true);
                 },
 
                 setChartMetric(metric) {
                     this.chartMetric = metric;
-                    this.updateChartData();
+                    this.updateChartData(true);
                 },
 
                 getCandidatePercentage(cand) {
@@ -96,16 +96,16 @@
                     return total > 0 ? ((votes / total) * 100).toFixed(1) : '0.0';
                 },
 
-                updateChartData() {
+                updateChartData(animate = false) {
                     if (!this.chartInstance) return;
 
                     const self = this;
-                    const labels = this.candidates.map(c => '{{ $setting->candidate_format_label }} ' + String(c.candidate_number || c.number).padStart(2, '0'));
+                    const labels = this.candidates.map(c => '{{ $setting->candidate_format_label }} ' + String(c.candidate_number || c.number || 1).padStart(2, '0'));
 
                     const colors = this.candidates.map((c, i) => {
                         const baseColor = c.color_tag || c.card_color || '#4f46e5';
                         if (self.selectedCandidateIndex !== null && self.selectedCandidateIndex !== i) {
-                            return baseColor + '40'; // dimmed when another candidate is clicked
+                            return baseColor + '35'; // dimmed when another candidate is clicked
                         }
                         return baseColor;
                     });
@@ -113,16 +113,14 @@
                     let datasetData = [];
                     if (this.chartMetric === 'percentage') {
                         datasetData = this.candidates.map(c => parseFloat(self.getCandidatePercentage(c)));
-                        this.chartInstance.options.scales.y.grace = '25%';
                     } else {
                         datasetData = this.candidates.map(c => c.ballots_count ?? c.votes ?? 0);
-                        this.chartInstance.options.scales.y.grace = '20%';
                     }
 
                     this.chartInstance.data.labels = labels;
                     this.chartInstance.data.datasets[0].data = datasetData;
                     this.chartInstance.data.datasets[0].backgroundColor = colors;
-                    this.chartInstance.update();
+                    this.chartInstance.update(animate ? 'default' : 'none');
                 },
 
                 initChart() {
@@ -130,9 +128,9 @@
                     if (!ctx) return;
 
                     const self = this;
-                    const labels = this.candidates.map(c => '{{ $setting->candidate_format_label }} ' + String(c.candidate_number).padStart(2, '0'));
+                    const labels = this.candidates.map(c => '{{ $setting->candidate_format_label }} ' + String(c.candidate_number || c.number || 1).padStart(2, '0'));
                     const colors = this.candidates.map(c => c.color_tag || c.card_color || '#4f46e5');
-                    const data = this.candidates.map(c => c.ballots_count || 0);
+                    const data = this.candidates.map(c => c.ballots_count ?? c.votes ?? 0);
 
                     // Helper to draw rounded rect across all canvas engines
                     function drawRoundedRect(ctx, x, y, width, height, radius) {
@@ -163,8 +161,8 @@
                                 const isSelected = (self.selectedCandidateIndex === index);
                                 const x = bar.x;
                                 const y = bar.y;
-                                const radius = isSelected ? 37 : 34; // slightly bigger if selected
-                                const centerY = Math.max(chart.chartArea.top + radius + 4, y - 4);
+                                const radius = isSelected ? 37 : 33;
+                                const centerY = Math.max(chart.chartArea.top + radius + 34, y - 4);
                                 const candColor = cand.color_tag || cand.card_color || '#4f46e5';
 
                                 ctx.save();
@@ -174,7 +172,7 @@
                                 ctx.arc(x, centerY, radius + 3.5, 0, Math.PI * 2);
                                 ctx.fillStyle = candColor;
                                 ctx.shadowColor = isSelected ? candColor : 'rgba(0, 0, 0, 0.55)';
-                                ctx.shadowBlur = isSelected ? 20 : 12;
+                                ctx.shadowBlur = isSelected ? 22 : 12;
                                 ctx.shadowOffsetY = 4;
                                 ctx.fill();
 
@@ -210,7 +208,7 @@
                                     ctx.font = 'bold 18px "Plus Jakarta Sans", sans-serif';
                                     ctx.textAlign = 'center';
                                     ctx.textBaseline = 'middle';
-                                    ctx.fillText(String(cand.candidate_number || (index + 1)).padStart(2, '0'), x, centerY);
+                                    ctx.fillText(String(cand.candidate_number || cand.number || (index + 1)).padStart(2, '0'), x, centerY);
                                 }
                                 ctx.restore();
 
@@ -237,68 +235,66 @@
                                 ctx.font = 'bold 12px "Plus Jakarta Sans", sans-serif';
                                 ctx.textAlign = 'center';
                                 ctx.textBaseline = 'middle';
-                                ctx.fillText(String(cand.candidate_number || (index + 1)), badgeX, badgeY);
+                                ctx.fillText(String(cand.candidate_number || cand.number || (index + 1)), badgeX, badgeY);
 
-                                // 6. Floating percentage / votes badge (Opsi 1 + Opsi 2)
-                                const showBadge = isSelected || self.chartMetric === 'both' || self.chartMetric === 'percentage';
-                                if (showBadge) {
-                                    const votes = cand.ballots_count ?? cand.votes ?? 0;
-                                    const pct = self.getCandidatePercentage(cand);
+                                // 6. Floating percentage / votes badge (Always cleanly rendered)
+                                const votes = cand.ballots_count ?? cand.votes ?? 0;
+                                const pct = self.getCandidatePercentage(cand);
 
-                                    let badgeText = '';
-                                    if (self.chartMetric === 'percentage' && !isSelected) {
-                                        badgeText = `${pct}%`;
-                                    } else if (self.chartMetric === 'votes' && isSelected) {
-                                        badgeText = `${votes.toLocaleString('id-ID')} Suara (${pct}%)`;
-                                    } else {
-                                        badgeText = `${votes.toLocaleString('id-ID')} Suara (${pct}%)`;
-                                    }
-
-                                    ctx.save();
-                                    ctx.font = 'bold 12px "Plus Jakarta Sans", sans-serif';
-                                    const textWidth = ctx.measureText(badgeText).width;
-                                    const pillPaddingX = 10;
-                                    const pillWidth = textWidth + pillPaddingX * 2;
-                                    const pillHeight = 26;
-                                    const pillY = centerY - radius - pillHeight - 6;
-                                    const pillX = x - pillWidth / 2;
-
-                                    // Shadow
-                                    ctx.shadowColor = isSelected ? candColor : 'rgba(0, 0, 0, 0.75)';
-                                    ctx.shadowBlur = isSelected ? 16 : 10;
-                                    ctx.shadowOffsetY = 4;
-
-                                    // Pill Background
-                                    drawRoundedRect(ctx, pillX, pillY, pillWidth, pillHeight, 13);
-                                    ctx.fillStyle = '#0f172a';
-                                    ctx.fill();
-
-                                    // Pill Border
-                                    ctx.lineWidth = isSelected ? 2.5 : 1.5;
-                                    ctx.strokeStyle = isSelected ? '#ffffff' : candColor;
-                                    ctx.stroke();
-
-                                    // Downward Arrow Pointer
-                                    ctx.beginPath();
-                                    ctx.moveTo(x - 5, pillY + pillHeight);
-                                    ctx.lineTo(x + 5, pillY + pillHeight);
-                                    ctx.lineTo(x, pillY + pillHeight + 5);
-                                    ctx.closePath();
-                                    ctx.fillStyle = '#0f172a';
-                                    ctx.fill();
-                                    ctx.lineWidth = isSelected ? 2.5 : 1.5;
-                                    ctx.strokeStyle = isSelected ? '#ffffff' : candColor;
-                                    ctx.stroke();
-
-                                    // Text
-                                    ctx.shadowColor = 'transparent';
-                                    ctx.fillStyle = '#ffffff';
-                                    ctx.textAlign = 'center';
-                                    ctx.textBaseline = 'middle';
-                                    ctx.fillText(badgeText, x, pillY + pillHeight / 2);
-
-                                    ctx.restore();
+                                let badgeText = '';
+                                if (self.chartMetric === 'percentage') {
+                                    badgeText = isSelected ? `${votes.toLocaleString('id-ID')} Suara (${pct}%)` : `${pct}%`;
+                                } else if (self.chartMetric === 'votes') {
+                                    badgeText = isSelected ? `${votes.toLocaleString('id-ID')} Suara (${pct}%)` : `${votes.toLocaleString('id-ID')} Suara`;
+                                } else {
+                                    // 'both' mode (default)
+                                    badgeText = `${votes.toLocaleString('id-ID')} Suara (${pct}%)`;
                                 }
+
+                                ctx.save();
+                                ctx.font = isSelected ? 'bold 12.5px "Plus Jakarta Sans", sans-serif' : 'bold 11.5px "Plus Jakarta Sans", sans-serif';
+                                const textWidth = ctx.measureText(badgeText).width;
+                                const pillPaddingX = 10;
+                                const pillWidth = textWidth + pillPaddingX * 2;
+                                const pillHeight = 26;
+                                const pillY = centerY - radius - pillHeight - 6;
+                                const pillX = x - pillWidth / 2;
+
+                                // Shadow
+                                ctx.shadowColor = isSelected ? candColor : 'rgba(0, 0, 0, 0.75)';
+                                ctx.shadowBlur = isSelected ? 18 : 10;
+                                ctx.shadowOffsetY = 4;
+
+                                // Pill Background
+                                drawRoundedRect(ctx, pillX, pillY, pillWidth, pillHeight, 13);
+                                ctx.fillStyle = isSelected ? '#020617' : '#0f172a';
+                                ctx.fill();
+
+                                // Pill Border
+                                ctx.lineWidth = isSelected ? 2.5 : 1.5;
+                                ctx.strokeStyle = isSelected ? '#ffffff' : candColor;
+                                ctx.stroke();
+
+                                // Downward Arrow Pointer
+                                ctx.beginPath();
+                                ctx.moveTo(x - 5, pillY + pillHeight);
+                                ctx.lineTo(x + 5, pillY + pillHeight);
+                                ctx.lineTo(x, pillY + pillHeight + 5);
+                                ctx.closePath();
+                                ctx.fillStyle = isSelected ? '#020617' : '#0f172a';
+                                ctx.fill();
+                                ctx.lineWidth = isSelected ? 2.5 : 1.5;
+                                ctx.strokeStyle = isSelected ? '#ffffff' : candColor;
+                                ctx.stroke();
+
+                                // Text
+                                ctx.shadowColor = 'transparent';
+                                ctx.fillStyle = '#ffffff';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText(badgeText, x, pillY + pillHeight / 2);
+
+                                ctx.restore();
 
                                 ctx.restore();
                             });
@@ -320,40 +316,37 @@
                         options: {
                             responsive: true,
                             maintainAspectRatio: false,
+                            onHover: (event, chartElement) => {
+                                const target = event.native ? event.native.target : (event.chart ? event.chart.canvas : null);
+                                if (target) {
+                                    target.style.cursor = chartElement && chartElement.length ? 'pointer' : 'default';
+                                }
+                            },
                             onClick: (event, elements) => {
                                 if (elements && elements.length > 0) {
                                     const index = elements[0].index;
                                     self.toggleCandidateSelection(index);
                                 } else {
                                     self.selectedCandidateIndex = null;
-                                    self.updateChartData();
+                                    self.updateChartData(true);
                                 }
                             },
                             layout: {
                                 padding: {
-                                    top: 55,
-                                    left: 10,
-                                    right: 10,
+                                    top: 68,
+                                    left: 15,
+                                    right: 15,
                                     bottom: 0
                                 }
                             },
                             plugins: {
                                 legend: { display: false },
-                                tooltip: {
-                                    callbacks: {
-                                        label: (context) => {
-                                            const cand = self.candidates[context.dataIndex];
-                                            const votes = cand?.ballots_count ?? cand?.votes ?? context.raw;
-                                            const pct = self.getCandidatePercentage(cand);
-                                            return `${votes} Suara (${pct}%)`;
-                                        }
-                                    }
-                                }
+                                tooltip: { enabled: false } // Native tooltip disabled so black box never gets stuck!
                             },
                             scales: {
                                 y: {
                                     beginAtZero: true,
-                                    grace: '20%',
+                                    grace: '28%',
                                     ticks: {
                                         color: '#94a3b8',
                                         font: { family: 'Plus Jakarta Sans', weight: 'bold' },
@@ -389,7 +382,7 @@
                         // Update chart if not frozen
                         if (!this.isFrozen && this.chartInstance && data.candidates) {
                             this.candidates = data.candidates;
-                            this.updateChartData();
+                            this.updateChartData(false);
                         }
                     } catch (err) {
                         console.error('Polling error:', err);

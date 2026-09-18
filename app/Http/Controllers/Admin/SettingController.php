@@ -37,6 +37,7 @@ class SettingController extends Controller
         $validated = $request->validate([
             'school_name' => ['required', 'string', 'max:255'],
             'election_title' => ['required', 'string', 'max:255'],
+            'candidate_format' => ['nullable', 'string', 'in:auto,ketua_saja,dengan_wakil'],
             'academic_year' => ['required', 'string', 'max:20'],
             'start_time' => ['nullable', 'date'],
             'end_time' => ['nullable', 'date', 'after_or_equal:start_time'],

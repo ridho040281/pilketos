@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Storage;
     'school_logo',
     'favicon',
     'election_title',
+    'candidate_format',
     'academic_year',
     'start_time',
     'end_time',
@@ -183,5 +184,42 @@ class ElectionSetting extends Model
     public function getNipPembinaOsisAttribute(): ?string
     {
         return $this->pembina_nip;
+    }
+
+    /**
+     * Get candidate format label ('Calon' for ketua saja, 'Paslon' for dengan wakil).
+     */
+    public function getCandidateFormatLabelAttribute(): string
+    {
+        if ($this->candidate_format === 'ketua_saja') {
+            return 'Calon';
+        }
+
+        if ($this->candidate_format === 'dengan_wakil') {
+            return 'Paslon';
+        }
+
+        // Default or 'auto': check if any candidate has a co_leader_name
+        $hasCoLeader = Candidate::whereNotNull('co_leader_name')
+            ->where('co_leader_name', '!=', '')
+            ->exists();
+
+        return $hasCoLeader ? 'Paslon' : 'Calon';
+    }
+
+    /**
+     * Get full candidate format label ('Calon' or 'Pasangan Calon').
+     */
+    public function getCandidateFormatFullLabelAttribute(): string
+    {
+        return $this->candidate_format_label === 'Paslon' ? 'Pasangan Calon' : 'Calon';
+    }
+
+    /**
+     * Check if election is single leader (ketua saja).
+     */
+    public function getIsKetuaSajaAttribute(): bool
+    {
+        return $this->candidate_format_label === 'Calon';
     }
 }

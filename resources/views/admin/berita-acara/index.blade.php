@@ -94,15 +94,15 @@
             </div>
         </div>
 
-        <!-- II. Hasil Perolehan Suara Pasangan Calon -->
+        <!-- II. Hasil Perolehan Suara Pasangan Calon / Calon -->
         <div class="mb-6">
-            <h4 class="text-xs sm:text-sm font-bold uppercase text-slate-900 mb-2">II. PEROLEHAN SUARA PASANGAN CALON</h4>
+            <h4 class="text-xs sm:text-sm font-bold uppercase text-slate-900 mb-2">II. PEROLEHAN SUARA {{ strtoupper($setting->candidate_format_full_label) }}</h4>
             <div class="overflow-x-auto">
                 <table class="w-full text-xs border border-slate-300 text-left">
                     <thead class="bg-slate-100 font-bold uppercase text-slate-700 text-center">
                         <tr>
                             <th class="p-2.5 border border-slate-300 w-16">No. Urut</th>
-                            <th class="p-2.5 border border-slate-300 text-left">Nama Pasangan Calon</th>
+                            <th class="p-2.5 border border-slate-300 text-left">Nama {{ $setting->candidate_format_full_label }}</th>
                             <th class="p-2.5 border border-slate-300 w-32 text-right">Perolehan Suara</th>
                             <th class="p-2.5 border border-slate-300 w-28 text-right">Persentase</th>
                         </tr>
@@ -140,9 +140,9 @@
         <!-- III. Penetapan Pemenang -->
         @if ($winner)
             <div class="mb-8 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm">
-                <h4 class="font-bold uppercase text-slate-900 mb-1">III. PENETAPAN {{ !empty($winner->co_leader_name) ? 'PASANGAN CALON' : 'CALON' }} TERPILIH</h4>
+                <h4 class="font-bold uppercase text-slate-900 mb-1">III. PENETAPAN {{ strtoupper($setting->candidate_format_full_label) }} TERPILIH</h4>
                 <p class="leading-relaxed">
-                    Menetapkan bahwa {{ !empty($winner->co_leader_name) ? 'Pasangan Calon' : 'Calon' }} Nomor Urut <strong>{{ sprintf('%02d', $winner->candidate_number) }}</strong> atas nama <strong>{{ $winner->leader_name }}</strong>@if(!empty($winner->co_leader_name)) dan <strong>{{ $winner->co_leader_name }}</strong>@endif yang memperoleh sebanyak <strong>{{ number_format($winner->ballots_count, 0, ',', '.') }} suara ({{ $winner->percentage }}%)</strong>, secara sah ditetapkan sebagai <strong>{{ !empty($winner->co_leader_name) ? 'Ketua dan Wakil Ketua' : 'Ketua' }} OSIS Terpilih Periode {{ $setting->academic_year }}</strong>.
+                    Menetapkan bahwa {{ $setting->candidate_format_full_label }} Nomor Urut <strong>{{ sprintf('%02d', $winner->candidate_number) }}</strong> atas nama <strong>{{ $winner->leader_name }}</strong>@if(!empty($winner->co_leader_name)) dan <strong>{{ $winner->co_leader_name }}</strong>@endif yang memperoleh sebanyak <strong>{{ number_format($winner->ballots_count, 0, ',', '.') }} suara ({{ $winner->percentage }}%)</strong>, secara sah ditetapkan sebagai <strong>{{ $setting->is_ketua_saja ? 'Ketua' : 'Ketua dan Wakil Ketua' }} OSIS Terpilih Periode {{ $setting->academic_year }}</strong>.
                 </p>
             </div>
         @endif

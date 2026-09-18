@@ -156,6 +156,51 @@
                     @error('election_title') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
+                <!-- Format Kandidat Pemilihan (Calon vs Paslon) -->
+                <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-2.5">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                            Format Kandidat Pemilihan
+                        </label>
+                        <span class="text-[11px] text-slate-400 font-medium">Menyesuaikan label sebutan Calon vs Paslon di Proyektor & Laporan</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <label class="p-3 rounded-xl border flex items-start gap-2.5 cursor-pointer transition-all bg-white hover:border-indigo-300">
+                            <input type="radio" name="candidate_format" value="ketua_saja" {{ old('candidate_format', $setting->candidate_format ?? 'auto') === 'ketua_saja' ? 'checked' : '' }} class="mt-0.5 text-indigo-600 focus:ring-indigo-500">
+                            <div>
+                                <div class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                                    <span>👤 Hanya Ketua Saja</span>
+                                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold">Calon</span>
+                                </div>
+                                <div class="text-[11px] text-slate-500 mt-0.5">Label sistem menggunakan <strong>"Calon"</strong> (contoh: Calon 01, Grafik Calon).</div>
+                            </div>
+                        </label>
+
+                        <label class="p-3 rounded-xl border flex items-start gap-2.5 cursor-pointer transition-all bg-white hover:border-indigo-300">
+                            <input type="radio" name="candidate_format" value="dengan_wakil" {{ old('candidate_format', $setting->candidate_format ?? 'auto') === 'dengan_wakil' ? 'checked' : '' }} class="mt-0.5 text-indigo-600 focus:ring-indigo-500">
+                            <div>
+                                <div class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                                    <span>👥 Dengan Wakil Ketua</span>
+                                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">Paslon</span>
+                                </div>
+                                <div class="text-[11px] text-slate-500 mt-0.5">Label sistem menggunakan <strong>"Paslon"</strong> (contoh: Paslon 01, Grafik Paslon).</div>
+                            </div>
+                        </label>
+
+                        <label class="p-3 rounded-xl border flex items-start gap-2.5 cursor-pointer transition-all bg-white hover:border-indigo-300">
+                            <input type="radio" name="candidate_format" value="auto" {{ old('candidate_format', $setting->candidate_format ?? 'auto') === 'auto' ? 'checked' : '' }} class="mt-0.5 text-indigo-600 focus:ring-indigo-500">
+                            <div>
+                                <div class="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                                    <span>⚙️ Otomatis</span>
+                                    <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 font-bold">Deteksi</span>
+                                </div>
+                                <div class="text-[11px] text-slate-500 mt-0.5">Otomatis "Paslon" jika ada calon berwakil, atau "Calon" jika hanya ketua saja.</div>
+                            </div>
+                        </label>
+                    </div>
+                    @error('candidate_format') <span class="text-xs text-rose-600 mt-1 block">{{ $message }}</span> @enderror
+                </div>
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
                         <label class="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-1.5">

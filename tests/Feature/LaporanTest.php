@@ -436,4 +436,65 @@ class LaporanTest extends TestCase
         $resPrintDH->assertSee('Siti Rahmawati, S.Pd');
         $resPrintDH->assertSee('198502152010012025');
     }
+
+    public function test_admin_can_save_candidate_format_setting(): void
+    {
+        $response = $this->actingAs($this->admin)->put(route('admin.settings.update'), [
+            'school_name' => 'MTsN 1 BLITAR',
+            'academic_year' => '2026/2027',
+            'election_title' => 'Pemilihan Ketua OSIS',
+            'candidate_format' => 'ketua_saja',
+            'is_active' => '1',
+            'show_quick_count' => '1',
+            'show_qr_code' => '1',
+        ]);
+
+        $response->assertRedirect(route('admin.settings.edit'));
+        $setting = ElectionSetting::current();
+        $this->assertEquals('ketua_saja', $setting->candidate_format);
+        $this->assertEquals('Calon', $setting->candidate_format_label);
+        $this->assertEquals('Calon', $setting->candidate_format_full_label);
+        $this->assertTrue($setting->is_ketua_saja);
+    }
+
+    public function test_candidate_format_affects_proyektor_and_laporan_terminology(): void
+    {
+        $setting = ElectionSetting::current();
+
+        // 1. Single candidate format: "ketua_saja" -> "Calon"
+        $setting->update(['candidate_format' => 'ketua_saja']);
+
+        $resProyektor = $this->get(route('proyektor.index'));
+        $resProyektor->assertStatus(200);
+        $resProyektor->assertSee('Grafik Perolehan Suara Calon');
+        $resProyektor->assertSee("'Calon ' + String", false);
+
+        $resApi = $this->getJson(route('proyektor.api'));
+        $resApi->assertStatus(200);
+        $resApi->assertJsonPath('candidate_label', 'Calon');
+        $resApi->assertJsonPath('candidate_full_label', 'Calon');
+
+        $resLaporan = $this->actingAs($this->admin)->get(route('admin.laporan.index'));
+        $resLaporan->assertStatus(200);
+        $resLaporan->assertSee('Grafik Perolehan Suara Calon');
+        $resLaporan->assertSee('Calon 01');
+
+        // 2. Pair candidate format: "dengan_wakil" -> "Paslon"
+        $setting->update(['candidate_format' => 'dengan_wakil']);
+
+        $resProyektorPair = $this->get(route('proyektor.index'));
+        $resProyektorPair->assertStatus(200);
+        $resProyektorPair->assertSee('Grafik Perolehan Suara Paslon');
+        $resProyektorPair->assertSee("'Paslon ' + String", false);
+
+        $resApiPair = $this->getJson(route('proyektor.api'));
+        $resApiPair->assertStatus(200);
+        $resApiPair->assertJsonPath('candidate_label', 'Paslon');
+        $resApiPair->assertJsonPath('candidate_full_label', 'Pasangan Calon');
+
+        $resLaporanPair = $this->actingAs($this->admin)->get(route('admin.laporan.index'));
+        $resLaporanPair->assertStatus(200);
+        $resLaporanPair->assertSee('Grafik Perolehan Suara Paslon');
+        $resLaporanPair->assertSee('Paslon 01');
+    }
 }

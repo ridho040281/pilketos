@@ -88,11 +88,11 @@
     <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
         <div class="flex items-center justify-between mb-6">
             <div>
-                <h3 class="text-base font-bold text-slate-900">Perolehan Suara Pasangan Calon (Internal Panitia)</h3>
+                <h3 class="text-base font-bold text-slate-900">Perolehan Suara {{ $setting->candidate_format_full_label }} (Internal Panitia)</h3>
                 <p class="text-xs text-slate-500 mt-0.5">Data suara sah masuk dari kotak suara digital</p>
             </div>
             <a href="{{ route('admin.candidates.index') }}" class="text-xs font-bold text-indigo-600 hover:text-indigo-700">
-                Kelola Paslon &rarr;
+                Kelola {{ $setting->candidate_format_label }} &rarr;
             </a>
         </div>
 

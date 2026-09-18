@@ -234,7 +234,7 @@
                 <div>
                     <span class="text-[11px] font-semibold text-purple-600 uppercase tracking-wider block">Kotak Suara</span>
                     <span class="text-xl font-black text-purple-700">{{ number_format($totalBallots, 0, ',', '.') }}</span>
-                    <span class="text-[11px] text-purple-600 font-bold block">{{ $candidates->count() }} Pasangan Calon</span>
+                    <span class="text-[11px] text-purple-600 font-bold block">{{ $candidates->count() }} {{ $setting->candidate_format_full_label }}</span>
                 </div>
             </div>
         </div>
@@ -243,7 +243,7 @@
         <div class="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
                 <div>
-                    <h3 class="text-base font-bold text-slate-900">Perolehan Suara Pasangan Calon</h3>
+                    <h3 class="text-base font-bold text-slate-900">Perolehan Suara {{ $setting->candidate_format_full_label }}</h3>
                     <p class="text-xs text-slate-500 mt-0.5">Grafik dan persentase perolehan suara sah di bilik suara</p>
                 </div>
                 <div class="text-xs text-slate-500 font-medium">
@@ -293,14 +293,14 @@
                             </div>
                         </div>
                     @empty
-                        <div class="text-center py-6 text-xs text-slate-400">Belum ada data pasangan calon.</div>
+                        <div class="text-center py-6 text-xs text-slate-400">Belum ada data {{ strtolower($setting->candidate_format_full_label) }}.</div>
                     @endforelse
                 </div>
 
-                <!-- Right: Chart Graphic Paslon -->
+                <!-- Right: Chart Graphic Paslon / Calon -->
                 <div class="lg:col-span-5 bg-slate-50/70 rounded-2xl p-4 border border-slate-200 flex flex-col justify-between">
                     <div class="mb-3">
-                        <span class="text-xs font-bold text-slate-700 block">Grafik Perolehan Suara Paslon</span>
+                        <span class="text-xs font-bold text-slate-700 block">Grafik Perolehan Suara {{ $setting->candidate_format_label }}</span>
                         <span class="text-[11px] text-slate-400">Diagram perbandingan suara sah</span>
                     </div>
                     <div class="relative h-64 w-full">
@@ -420,8 +420,8 @@
             <!-- Perolehan Suara Paslon Berdasarkan Kategori Pemilih -->
             <div class="mt-6 pt-6 border-t border-slate-200/80">
                 <div class="mb-4">
-                    <h4 class="text-sm font-bold text-slate-900">Perolehan Suara Pasangan Calon Berdasarkan Kategori Pemilih</h4>
-                    <p class="text-xs text-slate-500">Rincian perolehan suara sah masing-masing paslon dari pemilih Guru, Tenaga Kependidikan, dan Siswa</p>
+                    <h4 class="text-sm font-bold text-slate-900">Perolehan Suara {{ $setting->candidate_format_full_label }} Berdasarkan Kategori Pemilih</h4>
+                    <p class="text-xs text-slate-500">Rincian perolehan suara sah masing-masing {{ strtolower($setting->candidate_format_label) }} dari pemilih Guru, Tenaga Kependidikan, dan Siswa</p>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -506,8 +506,8 @@
         <div class="bg-white rounded-3xl border border-slate-200 p-5 sm:p-6 shadow-sm">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-6">
                 <div>
-                    <h3 class="text-base font-bold text-slate-900">Grafik & Rekapitulasi Perolehan Suara Paslon Per Kelas Siswa</h3>
-                    <p class="text-xs text-slate-500 mt-0.5">Pantau capaian persentase dan jumlah suara masing-masing pasangan calon untuk setiap rombel kelas</p>
+                    <h3 class="text-base font-bold text-slate-900">Grafik & Rekapitulasi Perolehan Suara {{ $setting->candidate_format_label }} Per Kelas Siswa</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Pantau capaian persentase dan jumlah suara masing-masing {{ strtolower($setting->candidate_format_full_label) }} untuk setiap rombel kelas</p>
                 </div>
                 <div class="text-xs text-slate-500 font-medium">
                     Total: <strong class="text-slate-900 font-bold">{{ $classesStats->count() }}</strong> Kelas
@@ -527,7 +527,7 @@
                             @click="classChartMode = 'paslon'; $nextTick(() => { if (window.hitungCepatCharts && window.hitungCepatCharts.classesPaslon) window.hitungCepatCharts.classesPaslon.resize(); })" 
                             :class="classChartMode === 'paslon' ? 'bg-white text-indigo-600 font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 font-medium'"
                             class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs transition-all cursor-pointer">
-                            <span>📊 Perolehan Suara Paslon</span>
+                            <span>📊 Perolehan Suara {{ $setting->candidate_format_label }}</span>
                         </button>
                         <button 
                             type="button"
@@ -543,14 +543,14 @@
                 <div x-show="classChartMode === 'paslon'" class="bg-slate-50/70 rounded-2xl p-4 border border-slate-200">
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
                         <div>
-                            <span class="text-xs font-bold text-slate-800 block">Grafik Batang Perolehan Suara Paslon Tiap Kelas</span>
-                            <span class="text-[11px] text-slate-500">Komposisi suara pasangan calon pada masing-masing rombel kelas</span>
+                            <span class="text-xs font-bold text-slate-800 block">Grafik Batang Perolehan Suara {{ $setting->candidate_format_label }} Tiap Kelas</span>
+                            <span class="text-[11px] text-slate-500">Komposisi suara {{ strtolower($setting->candidate_format_full_label) }} pada masing-masing rombel kelas</span>
                         </div>
                         <div class="flex flex-wrap items-center gap-3">
                             @foreach ($candidates as $c)
                                 <span class="inline-flex items-center gap-1 text-[11px] font-bold text-slate-700">
                                     <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: {{ $c->card_color }}"></span>
-                                    Paslon {{ sprintf('%02d', $c->candidate_number) }}
+                                    {{ $setting->candidate_format_label }} {{ sprintf('%02d', $c->candidate_number) }}
                                 </span>
                             @endforeach
                         </div>
@@ -584,7 +584,7 @@
                                 <th colspan="2" class="px-3 py-2 text-center border-b border-r border-slate-200" style="background-color: {{ $c->card_color }}15; border-top: 3px solid {{ $c->card_color }};">
                                     <span class="inline-flex items-center gap-1">
                                         <span class="w-2 h-2 rounded-full" style="background-color: {{ $c->card_color }}"></span>
-                                        Paslon {{ sprintf('%02d', $c->candidate_number) }}
+                                        {{ $setting->candidate_format_label }} {{ sprintf('%02d', $c->candidate_number) }}
                                     </span>
                                 </th>
                             @endforeach
@@ -628,7 +628,7 @@
                                     @if($stat->leading_candidate_id)
                                         @php $leadCand = $candidates->firstWhere('id', $stat->leading_candidate_id); @endphp
                                         <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black text-white shadow-2xs" style="background-color: {{ $leadCand ? $leadCand->card_color : '#4f46e5' }}">
-                                            🏆 Paslon {{ sprintf('%02d', $leadCand ? $leadCand->candidate_number : 0) }}
+                                            🏆 {{ $setting->candidate_format_label }} {{ sprintf('%02d', $leadCand ? $leadCand->candidate_number : 0) }}
                                         </span>
                                     @elseif($stat->is_tie && $stat->total_ballots > 0)
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
@@ -699,7 +699,7 @@
                                     @endphp
                                     @if($overallClassWinner && !$isOverallTie)
                                         <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-black text-white shadow-2xs" style="background-color: {{ $overallClassWinner->card_color }}">
-                                            🏆 Paslon {{ sprintf('%02d', $overallClassWinner->candidate_number) }}
+                                            🏆 {{ $setting->candidate_format_label }} {{ sprintf('%02d', $overallClassWinner->candidate_number) }}
                                         </span>
                                     @elseif($isOverallTie && $highestCandVotes > 0)
                                         <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
@@ -1141,15 +1141,15 @@
                 </div>
             </div>
 
-            <!-- II. Hasil Perolehan Suara Pasangan Calon -->
+            <!-- II. Hasil Perolehan Suara Pasangan Calon / Calon -->
             <div class="mb-6 font-sans">
-                <h4 class="text-xs sm:text-sm font-bold uppercase text-slate-900 mb-2">II. PEROLEHAN SUARA PASANGAN CALON</h4>
+                <h4 class="text-xs sm:text-sm font-bold uppercase text-slate-900 mb-2">II. PEROLEHAN SUARA {{ strtoupper($setting->candidate_format_full_label) }}</h4>
                 <div class="overflow-x-auto">
                     <table class="w-full text-xs border border-slate-300 text-left">
                         <thead class="bg-slate-100 font-bold uppercase text-slate-700 text-center">
                             <tr>
                                 <th class="p-2.5 border border-slate-300 w-16">No. Urut</th>
-                                <th class="p-2.5 border border-slate-300 text-left">Nama Pasangan Calon</th>
+                                <th class="p-2.5 border border-slate-300 text-left">Nama {{ $setting->candidate_format_full_label }}</th>
                                 <th class="p-2.5 border border-slate-300 w-32 text-right">Perolehan Suara</th>
                                 <th class="p-2.5 border border-slate-300 w-28 text-right">Persentase</th>
                             </tr>
@@ -1187,9 +1187,9 @@
             <!-- III. Penetapan Pemenang -->
             @if ($winner)
                 <div class="mb-8 p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm font-sans">
-                    <h4 class="font-bold uppercase text-slate-900 mb-1">III. PENETAPAN {{ !empty($winner->co_leader_name) ? 'PASANGAN CALON' : 'CALON' }} TERPILIH</h4>
+                    <h4 class="font-bold uppercase text-slate-900 mb-1">III. PENETAPAN {{ strtoupper($setting->candidate_format_full_label) }} TERPILIH</h4>
                     <p class="leading-relaxed">
-                        Menetapkan bahwa {{ !empty($winner->co_leader_name) ? 'Pasangan Calon' : 'Calon' }} Nomor Urut <strong>{{ sprintf('%02d', $winner->candidate_number) }}</strong> atas nama <strong>{{ $winner->leader_name }}</strong>@if(!empty($winner->co_leader_name)) dan <strong>{{ $winner->co_leader_name }}</strong>@endif yang memperoleh sebanyak <strong>{{ number_format($winner->ballots_count, 0, ',', '.') }} suara ({{ $winner->percentage }}%)</strong>, secara sah ditetapkan sebagai <strong>{{ !empty($winner->co_leader_name) ? 'Ketua dan Wakil Ketua' : 'Ketua' }} OSIS Terpilih Periode {{ $setting->academic_year }}</strong>.
+                        Menetapkan bahwa {{ $setting->candidate_format_full_label }} Nomor Urut <strong>{{ sprintf('%02d', $winner->candidate_number) }}</strong> atas nama <strong>{{ $winner->leader_name }}</strong>@if(!empty($winner->co_leader_name)) dan <strong>{{ $winner->co_leader_name }}</strong>@endif yang memperoleh sebanyak <strong>{{ number_format($winner->ballots_count, 0, ',', '.') }} suara ({{ $winner->percentage }}%)</strong>, secara sah ditetapkan sebagai <strong>{{ $setting->is_ketua_saja ? 'Ketua' : 'Ketua dan Wakil Ketua' }} OSIS Terpilih Periode {{ $setting->academic_year }}</strong>.
                     </p>
                 </div>
             @endif
@@ -1252,7 +1252,7 @@
                 hitungCepatCharts.paslon.destroy();
             }
             const candidates = @js($candidates);
-            const labels = candidates.map(c => 'Paslon ' + String(c.candidate_number).padStart(2, '0'));
+            const labels = candidates.map(c => '{{ $setting->candidate_format_label }} ' + String(c.candidate_number).padStart(2, '0'));
             const data = candidates.map(c => c.ballots_count);
             const colors = candidates.map(c => c.card_color || '#4f46e5');
 
@@ -1468,7 +1468,7 @@
 
             const datasets = candidates.map(c => {
                 return {
-                    label: 'Paslon ' + String(c.candidate_number).padStart(2, '0') + ' (' + c.leader_name + ')',
+                    label: '{{ $setting->candidate_format_label }} ' + String(c.candidate_number).padStart(2, '0') + ' (' + c.leader_name + ')',
                     data: classesStats.map(s => (s.candidate_results && s.candidate_results[c.id]) ? s.candidate_results[c.id].votes : 0),
                     backgroundColor: c.card_color || '#4f46e5',
                     borderRadius: 4,

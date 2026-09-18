@@ -70,6 +70,8 @@ class ProyektorController extends Controller
         return response()->json([
             'is_active' => (bool) $setting->is_active,
             'is_frozen' => ! (bool) $setting->show_quick_count,
+            'candidate_label' => $setting->candidate_format_label,
+            'candidate_full_label' => $setting->candidate_format_full_label,
             'total_voters' => $totalVoters,
             'voted_count' => $votedCount,
             'unvoted_count' => $unvotedCount,

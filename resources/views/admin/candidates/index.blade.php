@@ -100,7 +100,7 @@
             </div>
         @empty
             <div class="col-span-full py-12 text-center bg-white rounded-3xl border border-slate-200 text-slate-400">
-                Belum ada data pasangan calon. Klik tombol "Tambah Paslon Baru" di atas.
+                Belum ada data kandidat. Klik tombol "Tambah Calon Baru" di atas.
             </div>
         @endforelse
     </div>

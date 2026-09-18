@@ -59,7 +59,7 @@
             const ctx = document.getElementById('quickCountChart');
             if (!ctx) return;
 
-            const labels = this.candidates.map(c => 'Paslon ' + String(c.candidate_number).padStart(2, '0'));
+            const labels = this.candidates.map(c => '{{ $setting->candidate_format_label }} ' + String(c.candidate_number).padStart(2, '0'));
             const colors = this.candidates.map(c => c.color_tag || '#4f46e5');
             const data = this.candidates.map(c => c.ballots_count || 0);
 
@@ -116,6 +116,9 @@
 
                 // Update chart if not frozen
                 if (!this.isFrozen && this.chartInstance && data.candidates) {
+                    if (data.candidate_label) {
+                        this.chartInstance.data.labels = data.candidates.map(c => data.candidate_label + ' ' + String(c.number).padStart(2, '0'));
+                    }
                     this.chartInstance.data.datasets[0].data = data.candidates.map(c => c.votes || 0);
                     this.chartInstance.update();
                 }
@@ -216,7 +219,7 @@
             </span>
             <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-1">Pemungutan Suara Sedang Berlangsung</h2>
             <p class="text-sm text-slate-400 max-w-2xl mx-auto mt-3 leading-relaxed">
-                Rincian perolehan suara paslon disembunyikan sementara selama proses pemungutan suara berlangsung demi menjaga netralitas dan asas LUBER. Grafik perolehan resmi akan dibuka serentak pada saat <strong>Sidang Pleno Penghitungan Suara</strong> oleh Panitia.
+                Rincian perolehan suara {{ strtolower($setting->candidate_format_label) }} disembunyikan sementara selama proses pemungutan suara berlangsung demi menjaga netralitas dan asas LUBER. Grafik perolehan resmi akan dibuka serentak pada saat <strong>Sidang Pleno Penghitungan Suara</strong> oleh Panitia.
             </p>
 
             <!-- Grid of candidates in silhouette / neutral mode -->
@@ -244,7 +247,7 @@
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-base font-bold text-white flex items-center gap-2">
                         <span class="w-3 h-3 rounded-full bg-indigo-500 animate-pulse"></span>
-                        Grafik Perolehan Suara Paslon
+                        Grafik Perolehan Suara {{ $setting->candidate_format_label }}
                     </h3>
                     <span class="text-xs text-slate-400 font-mono">Diperbarui: <span x-text="lastUpdated"></span></span>
                 </div>

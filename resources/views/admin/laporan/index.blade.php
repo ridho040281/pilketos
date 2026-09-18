@@ -1213,14 +1213,14 @@
 
                     <div>
                         <span class="block text-slate-700 font-medium mb-16">Pembina OSIS,</span>
-                        <span class="block font-bold underline">( .................................................... )</span>
-                        <span class="block text-[11px] text-slate-500 mt-1">NIP. .....................................</span>
+                        <span class="block font-bold underline">( {{ $setting->pembina_name ?: '....................................................' }} )</span>
+                        <span class="block text-[11px] text-slate-500 mt-1">NIP. {{ $setting->pembina_nip ?: '.....................................' }}</span>
                     </div>
 
                     <div>
-                        <span class="block text-slate-700 font-medium mb-16">Kepala Sekolah,</span>
-                        <span class="block font-bold underline">( .................................................... )</span>
-                        <span class="block text-[11px] text-slate-500 mt-1">NIP. .....................................</span>
+                        <span class="block text-slate-700 font-medium mb-16">{{ $setting->headmaster_title }},</span>
+                        <span class="block font-bold underline">( {{ $setting->headmaster_name ?: '....................................................' }} )</span>
+                        <span class="block text-[11px] text-slate-500 mt-1">NIP. {{ $setting->headmaster_nip ?: '.....................................' }}</span>
                     </div>
                 </div>
             </div>

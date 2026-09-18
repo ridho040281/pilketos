@@ -376,4 +376,64 @@ class LaporanTest extends TestCase
         $this->assertEquals(2, $categoryBreakdown['siswa']['candidates'][$c1->id]['votes']);
         $this->assertEquals(1, $categoryBreakdown['guru']['candidates'][$c2->id]['votes']);
     }
+
+    public function test_admin_can_save_headmaster_and_pembina_in_settings(): void
+    {
+        $response = $this->actingAs($this->admin)->put(route('admin.settings.update'), [
+            'school_name' => 'MTsN 1 BLITAR',
+            'academic_year' => '2026/2027',
+            'election_title' => 'Pemilihan Ketua OSIS Periode 2026/2027',
+            'headmaster_name' => 'Drs. H. Ahmad Fauzi, M.Pd',
+            'headmaster_nip' => '197001011995031002',
+            'pembina_name' => 'Siti Rahmawati, S.Pd',
+            'pembina_nip' => '198502152010012025',
+            'is_active' => '1',
+            'show_quick_count' => '1',
+            'show_qr_code' => '1',
+        ]);
+
+        $response->assertRedirect(route('admin.settings.edit'));
+        $response->assertSessionHas('success');
+
+        $setting = ElectionSetting::current();
+        $this->assertEquals('Drs. H. Ahmad Fauzi, M.Pd', $setting->headmaster_name);
+        $this->assertEquals('197001011995031002', $setting->headmaster_nip);
+        $this->assertEquals('Siti Rahmawati, S.Pd', $setting->pembina_name);
+        $this->assertEquals('198502152010012025', $setting->pembina_nip);
+        $this->assertEquals('Kepala Madrasah', $setting->headmaster_title);
+    }
+
+    public function test_berita_acara_and_laporan_displays_headmaster_and_pembina_signatures(): void
+    {
+        $setting = ElectionSetting::current();
+        $setting->update([
+            'school_name' => 'MTsN 1 BLITAR',
+            'headmaster_name' => 'Drs. H. Ahmad Fauzi, M.Pd',
+            'headmaster_nip' => '197001011995031002',
+            'pembina_name' => 'Siti Rahmawati, S.Pd',
+            'pembina_nip' => '198502152010012025',
+        ]);
+
+        // 1. Preview in Laporan tab berita-acara
+        $resTab = $this->actingAs($this->admin)->get(route('admin.laporan.index', ['tab' => 'berita-acara']));
+        $resTab->assertStatus(200);
+        $resTab->assertSee('Kepala Madrasah,');
+        $resTab->assertSee('Drs. H. Ahmad Fauzi, M.Pd');
+        $resTab->assertSee('197001011995031002');
+        $resTab->assertSee('Siti Rahmawati, S.Pd');
+        $resTab->assertSee('198502152010012025');
+
+        // 2. Printable Berita Acara A4
+        $resPrintBA = $this->actingAs($this->admin)->get(route('admin.laporan.cetak-berita-acara'));
+        $resPrintBA->assertStatus(200);
+        $resPrintBA->assertSee('Kepala Madrasah,');
+        $resPrintBA->assertSee('Drs. H. Ahmad Fauzi, M.Pd');
+        $resPrintBA->assertSee('197001011995031002');
+
+        // 3. Printable Daftar Hadir A4
+        $resPrintDH = $this->actingAs($this->admin)->get(route('admin.laporan.cetak-daftar-hadir'));
+        $resPrintDH->assertStatus(200);
+        $resPrintDH->assertSee('Siti Rahmawati, S.Pd');
+        $resPrintDH->assertSee('198502152010012025');
+    }
 }

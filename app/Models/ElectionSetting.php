@@ -14,6 +14,10 @@ use Illuminate\Support\Facades\Storage;
     'academic_year',
     'start_time',
     'end_time',
+    'headmaster_name',
+    'headmaster_nip',
+    'pembina_name',
+    'pembina_nip',
     'is_active',
     'show_quick_count',
     'show_qr_code',
@@ -146,5 +150,38 @@ class ElectionSetting extends Model
             $baseYear.'/'.($baseYear + 1),
             ($baseYear + 1).'/'.($baseYear + 2),
         ];
+    }
+
+    /**
+     * Get title for headmaster (Kepala Madrasah for MTs/MA/MI, or Kepala Sekolah).
+     */
+    public function getHeadmasterTitleAttribute(): string
+    {
+        $name = strtoupper($this->school_name ?? '');
+        if (str_contains($name, 'MTS') || str_contains($name, 'MA ') || str_contains($name, 'MAN ') || str_contains($name, 'MI ') || str_contains($name, 'MIN ') || str_contains($name, 'MADRASAH')) {
+            return 'Kepala Madrasah';
+        }
+
+        return 'Kepala Sekolah';
+    }
+
+    public function getKepalaMadrasahAttribute(): ?string
+    {
+        return $this->headmaster_name;
+    }
+
+    public function getNipKepalaMadrasahAttribute(): ?string
+    {
+        return $this->headmaster_nip;
+    }
+
+    public function getPembinaOsisAttribute(): ?string
+    {
+        return $this->pembina_name;
+    }
+
+    public function getNipPembinaOsisAttribute(): ?string
+    {
+        return $this->pembina_nip;
     }
 }

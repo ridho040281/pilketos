@@ -35,7 +35,6 @@
                 candidateImages: [],
                 chartInstance: null,
                 lastUpdated: '{{ now()->format('H:i:s') }}',
-                chartMetric: 'both', // 'both' | 'votes' | 'percentage'
                 selectedCandidateIndex: null, // null | number
 
                 init() {
@@ -84,11 +83,6 @@
                     this.updateChartData(true);
                 },
 
-                setChartMetric(metric) {
-                    this.chartMetric = metric;
-                    this.updateChartData(true);
-                },
-
                 getCandidatePercentage(cand) {
                     if (!cand) return '0.0';
                     const total = this.votedCount || 0;
@@ -110,12 +104,7 @@
                         return baseColor;
                     });
 
-                    let datasetData = [];
-                    if (this.chartMetric === 'percentage') {
-                        datasetData = this.candidates.map(c => parseFloat(self.getCandidatePercentage(c)));
-                    } else {
-                        datasetData = this.candidates.map(c => c.ballots_count ?? c.votes ?? 0);
-                    }
+                    const datasetData = this.candidates.map(c => parseFloat(self.getCandidatePercentage(c)));
 
                     this.chartInstance.data.labels = labels;
                     this.chartInstance.data.datasets[0].data = datasetData;
@@ -130,7 +119,7 @@
                     const self = this;
                     const labels = this.candidates.map(c => '{{ $setting->candidate_format_label }} ' + String(c.candidate_number || c.number || 1).padStart(2, '0'));
                     const colors = this.candidates.map(c => c.color_tag || c.card_color || '#4f46e5');
-                    const data = this.candidates.map(c => c.ballots_count ?? c.votes ?? 0);
+                    const data = this.candidates.map(c => parseFloat(self.getCandidatePercentage(c)));
 
                     // Helper to draw rounded rect across all canvas engines
                     function drawRoundedRect(ctx, x, y, width, height, radius) {
@@ -237,24 +226,14 @@
                                 ctx.textBaseline = 'middle';
                                 ctx.fillText(String(cand.candidate_number || cand.number || (index + 1)), badgeX, badgeY);
 
-                                // 6. Floating percentage / votes badge (Always cleanly rendered)
-                                const votes = cand.ballots_count ?? cand.votes ?? 0;
+                                // 6. Floating percentage badge (Only percentage!)
                                 const pct = self.getCandidatePercentage(cand);
-
-                                let badgeText = '';
-                                if (self.chartMetric === 'percentage') {
-                                    badgeText = isSelected ? `${votes.toLocaleString('id-ID')} Suara (${pct}%)` : `${pct}%`;
-                                } else if (self.chartMetric === 'votes') {
-                                    badgeText = isSelected ? `${votes.toLocaleString('id-ID')} Suara (${pct}%)` : `${votes.toLocaleString('id-ID')} Suara`;
-                                } else {
-                                    // 'both' mode (default)
-                                    badgeText = `${votes.toLocaleString('id-ID')} Suara (${pct}%)`;
-                                }
+                                const badgeText = `${pct}%`;
 
                                 ctx.save();
-                                ctx.font = isSelected ? 'bold 12.5px "Plus Jakarta Sans", sans-serif' : 'bold 11.5px "Plus Jakarta Sans", sans-serif';
+                                ctx.font = isSelected ? 'bold 13px "Plus Jakarta Sans", sans-serif' : 'bold 12px "Plus Jakarta Sans", sans-serif';
                                 const textWidth = ctx.measureText(badgeText).width;
-                                const pillPaddingX = 10;
+                                const pillPaddingX = 12;
                                 const pillWidth = textWidth + pillPaddingX * 2;
                                 const pillHeight = 26;
                                 const pillY = centerY - radius - pillHeight - 6;
@@ -262,7 +241,7 @@
 
                                 // Shadow
                                 ctx.shadowColor = isSelected ? candColor : 'rgba(0, 0, 0, 0.75)';
-                                ctx.shadowBlur = isSelected ? 18 : 10;
+                                ctx.shadowBlur = isSelected ? 20 : 10;
                                 ctx.shadowOffsetY = 4;
 
                                 // Pill Background
@@ -306,7 +285,7 @@
                         data: {
                             labels: labels,
                             datasets: [{
-                                label: 'Perolehan Suara',
+                                label: 'Persentase Suara',
                                 data: data,
                                 backgroundColor: colors,
                                 borderRadius: 12,
@@ -341,7 +320,7 @@
                             },
                             plugins: {
                                 legend: { display: false },
-                                tooltip: { enabled: false } // Native tooltip disabled so black box never gets stuck!
+                                tooltip: { enabled: false }
                             },
                             scales: {
                                 y: {
@@ -351,7 +330,7 @@
                                         color: '#94a3b8',
                                         font: { family: 'Plus Jakarta Sans', weight: 'bold' },
                                         callback: function(val) {
-                                            return self.chartMetric === 'percentage' ? val + '%' : val;
+                                            return val + '%';
                                         }
                                     },
                                     grid: { color: '#1e293b' }
@@ -511,47 +490,20 @@
         <div x-show="!isFrozen" class="grid grid-cols-1 lg:grid-cols-3 gap-6 my-auto" x-cloak>
             <!-- Chart Column (2 cols on large) -->
             <div class="lg:col-span-2 bg-slate-900/80 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div class="flex items-center justify-between gap-3 mb-4">
                     <div class="flex items-center gap-3">
                         <h3 class="text-base font-bold text-white flex items-center gap-2">
                             <span class="w-3 h-3 rounded-full bg-indigo-500 animate-pulse"></span>
                             Grafik Perolehan Suara {{ $setting->candidate_format_label }}
                         </h3>
-                        <span class="text-xs text-slate-400 font-mono hidden md:inline">Diperbarui: <span x-text="lastUpdated"></span></span>
                     </div>
 
-                    <!-- Toggle Metrik: Suara | Persen (%) | Suara + % (Gabungan Opsi 1 & 2) -->
-                    <div class="flex items-center p-1 bg-slate-950/80 border border-slate-800 rounded-xl gap-1 text-xs font-semibold self-start sm:self-auto">
-                        <button 
-                            type="button"
-                            @click="setChartMetric('votes')"
-                            :class="chartMetric === 'votes' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'"
-                            class="px-2.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5"
-                            title="Tampilkan Jumlah Suara"
-                        >
-                            <span>📊</span>
-                            <span>Suara</span>
-                        </button>
-                        <button 
-                            type="button"
-                            @click="setChartMetric('percentage')"
-                            :class="chartMetric === 'percentage' ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'"
-                            class="px-2.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5"
-                            title="Tampilkan Skala & Nilai Persentase"
-                        >
+                    <div class="flex items-center gap-2">
+                        <span class="px-3 py-1 rounded-full bg-indigo-950/80 border border-indigo-800/40 text-xs font-bold text-indigo-400 flex items-center gap-1.5">
                             <span>📈</span>
-                            <span>Persen (%)</span>
-                        </button>
-                        <button 
-                            type="button"
-                            @click="setChartMetric('both')"
-                            :class="chartMetric === 'both' ? 'bg-gradient-to-r from-indigo-600 to-emerald-600 text-white shadow-md shadow-indigo-600/30' : 'text-slate-400 hover:text-white hover:bg-slate-800/60'"
-                            class="px-2.5 py-1.5 rounded-lg transition-all flex items-center gap-1.5"
-                            title="Tampilkan Suara Sekaligus Persentase"
-                        >
-                            <span>✨</span>
-                            <span>Semua</span>
-                        </button>
+                            <span>Skala Persentase (%)</span>
+                        </span>
+                        <span class="text-xs text-slate-400 font-mono hidden md:inline">Diperbarui: <span x-text="lastUpdated"></span></span>
                     </div>
                 </div>
                 <div class="h-64 sm:h-80 w-full relative">
@@ -588,7 +540,7 @@
 
                             <!-- Live Percentage Pill Badge -->
                             <div 
-                                class="px-2.5 py-1 rounded-full text-xs font-black flex items-center gap-1 border shrink-0 transition-all"
+                                class="px-3 py-1 rounded-full text-xs font-black flex items-center gap-1 border shrink-0 transition-all"
                                 :class="selectedCandidateIndex === {{ $index }} ? 'bg-indigo-500/20 text-indigo-300 border-indigo-400/40' : 'bg-slate-800/90 text-slate-300 border-slate-700/60'"
                             >
                                 <span x-text="getCandidatePercentage(candidates[{{ $index }}]) + '%'">
@@ -597,12 +549,13 @@
                             </div>
                         </div>
 
-                        <!-- Progress and count -->
+                        <!-- Progress and percentage -->
                         <div class="flex items-baseline justify-between pt-2 border-t border-slate-800/80">
-                            <span class="text-xs text-slate-400 font-medium">Perolehan</span>
+                            <span class="text-xs text-slate-400 font-medium">Persentase</span>
                             <div class="text-right">
-                                <span class="text-xl font-extrabold text-white" id="count-{{ $candidate->id }}" x-text="(candidates[{{ $index }}]?.ballots_count ?? candidates[{{ $index }}]?.votes ?? {{ $candidate->ballots_count }}).toLocaleString('id-ID')">{{ $candidate->ballots_count }}</span>
-                                <span class="text-xs text-slate-400">suara</span>
+                                <span class="text-2xl font-black text-white tracking-tight" x-text="getCandidatePercentage(candidates[{{ $index }}]) + '%'">
+                                    {{ $votedCount > 0 ? round(($candidate->ballots_count / $votedCount) * 100, 1) : 0 }}%
+                                </span>
                             </div>
                         </div>
 

@@ -19,6 +19,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Candidate extends Model
 {
     /**
+     * The accessors to append to the model's array and JSON form.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = [
+        'photo_url',
+        'card_color',
+    ];
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array

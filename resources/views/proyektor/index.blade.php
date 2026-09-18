@@ -33,6 +33,7 @@
         isFrozen: {{ $setting->show_quick_count ? 'false' : 'true' }},
         candidates: @js($candidates),
         chartInstance: null,
+        candidateImages: {},
         lastUpdated: '{{ now()->format('H:i:s') }}',
         
         init() {
@@ -55,13 +56,112 @@
             }
         },
 
+        loadCandidateImages() {
+            this.candidates.forEach(c => {
+                if (c.photo_url && !this.candidateImages[c.id]) {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.src = c.photo_url;
+                    img.onload = () => {
+                        this.candidateImages[c.id] = img;
+                        if (this.chartInstance) {
+                            this.chartInstance.draw();
+                        }
+                    };
+                }
+            });
+        },
+
         initChart() {
             const ctx = document.getElementById('quickCountChart');
             if (!ctx) return;
 
+            const self = this;
+            this.loadCandidateImages();
+
             const labels = this.candidates.map(c => '{{ $setting->candidate_format_label }} ' + String(c.candidate_number).padStart(2, '0'));
-            const colors = this.candidates.map(c => c.color_tag || '#4f46e5');
+            const colors = this.candidates.map(c => c.card_color || c.color_tag || '#4f46e5');
             const data = this.candidates.map(c => c.ballots_count || 0);
+
+            // Custom Chart.js plugin to draw circular candidate photos directly above each bar
+            const candidateAvatarPlugin = {
+                id: 'candidateAvatar',
+                afterDatasetsDraw(chart) {
+                    const { ctx, chartArea } = chart;
+                    const meta = chart.getDatasetMeta(0);
+                    if (!meta || !meta.data) return;
+
+                    meta.data.forEach((bar, i) => {
+                        const candidate = self.candidates[i];
+                        if (!candidate) return;
+
+                        const x = bar.x;
+                        const barY = bar.y;
+                        const radius = Math.min(26, Math.max(18, Math.round((bar.width || 48) / 2.6)));
+                        const centerY = Math.max(chartArea.top + radius + 4, barY - radius - 10);
+                        const img = self.candidateImages[candidate.id];
+                        const borderColor = candidate.card_color || candidate.color_tag || '#6366f1';
+
+                        ctx.save();
+
+                        // Drop shadow
+                        ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+                        ctx.shadowBlur = 8;
+                        ctx.shadowOffsetY = 3;
+
+                        // Base dark circle
+                        ctx.beginPath();
+                        ctx.arc(x, centerY, radius, 0, Math.PI * 2);
+                        ctx.fillStyle = '#0f172a';
+                        ctx.fill();
+                        ctx.shadowColor = 'transparent';
+
+                        if (img && img.complete && img.naturalWidth > 0) {
+                            // Circular clipped photo (cover style)
+                            ctx.save();
+                            ctx.beginPath();
+                            ctx.arc(x, centerY, radius - 2, 0, Math.PI * 2);
+                            ctx.closePath();
+                            ctx.clip();
+
+                            const iw = img.naturalWidth;
+                            const ih = img.naturalHeight;
+                            const size = (radius - 2) * 2;
+                            let sx = 0, sy = 0, sWidth = iw, sHeight = ih;
+                            if (iw > ih) {
+                                sWidth = ih;
+                                sx = (iw - ih) / 2;
+                            } else if (ih > iw) {
+                                sHeight = iw;
+                                sy = (ih - iw) / 2;
+                            }
+                            ctx.drawImage(img, sx, sy, sWidth, sHeight, x - (radius - 2), centerY - (radius - 2), size, size);
+                            ctx.restore();
+                        } else {
+                            // Fallback badge with candidate number
+                            ctx.beginPath();
+                            ctx.arc(x, centerY, radius - 2, 0, Math.PI * 2);
+                            ctx.fillStyle = borderColor;
+                            ctx.fill();
+
+                            ctx.fillStyle = '#ffffff';
+                            ctx.font = `900 ${Math.round(radius * 0.9)}px 'Plus Jakarta Sans', sans-serif`;
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(String(candidate.candidate_number).padStart(2, '0'), x, centerY);
+                        }
+
+                        // Circular ring border
+                        ctx.beginPath();
+                        ctx.arc(x, centerY, radius, 0, Math.PI * 2);
+                        ctx.lineWidth = 3;
+                        ctx.strokeStyle = borderColor;
+                        ctx.stroke();
+
+                        ctx.restore();
+                    });
+                }
+            };
 
             this.chartInstance = new Chart(ctx, {
                 type: 'bar',
@@ -78,6 +178,11 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
+                    layout: {
+                        padding: {
+                            top: 25
+                        }
+                    },
                     plugins: {
                         legend: { display: false },
                         tooltip: {
@@ -89,6 +194,7 @@
                     scales: {
                         y: {
                             beginAtZero: true,
+                            grace: '20%',
                             ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', weight: 'bold' } },
                             grid: { color: '#1e293b' }
                         },
@@ -97,7 +203,8 @@
                             grid: { display: false }
                         }
                     }
-                }
+                },
+                plugins: [candidateAvatarPlugin]
             });
         },
 
@@ -120,6 +227,20 @@
                         this.chartInstance.data.labels = data.candidates.map(c => data.candidate_label + ' ' + String(c.number).padStart(2, '0'));
                     }
                     this.chartInstance.data.datasets[0].data = data.candidates.map(c => c.votes || 0);
+
+                    // Load any new photos if needed
+                    data.candidates.forEach(c => {
+                        if (c.photo_url && !this.candidateImages[c.id]) {
+                            const img = new Image();
+                            img.crossOrigin = 'anonymous';
+                            img.src = c.photo_url;
+                            img.onload = () => {
+                                this.candidateImages[c.id] = img;
+                                if (this.chartInstance) this.chartInstance.draw();
+                            };
+                        }
+                    });
+
                     this.chartInstance.update();
                 }
             } catch (err) {

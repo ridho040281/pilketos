@@ -42,7 +42,7 @@
     <div class="print-page max-w-4xl mx-auto bg-white rounded-3xl p-8 sm:p-12 shadow-xl border border-slate-200 text-slate-900 leading-relaxed">
         <!-- Kop Surat -->
         <div class="text-center border-b-4 border-double border-slate-900 pb-4 mb-6">
-            <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-600">PANITIA PEMILIHAN KETUA DAN WAKIL KETUA OSIS</h3>
+            <h3 class="text-xs sm:text-sm font-bold uppercase tracking-widest text-slate-600">PANITIA PEMILIHAN {{ $setting->is_ketua_saja ? 'KETUA' : 'KETUA DAN WAKIL KETUA' }} OSIS</h3>
             <h2 class="text-lg sm:text-2xl font-black uppercase tracking-tight text-slate-900 mt-0.5">{{ $setting->school_name }}</h2>
             <p class="text-xs text-slate-600 mt-1">
                 {{ $setting->election_title }} &bull; Tahun Pelajaran {{ $setting->academic_year }}

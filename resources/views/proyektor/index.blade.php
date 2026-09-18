@@ -31,6 +31,7 @@
                 unvotedCount: {{ $unvotedCount }},
                 turnoutPercentage: {{ $turnoutPercentage }},
                 isFrozen: {{ $setting->show_quick_count ? 'false' : 'true' }},
+                isActive: {{ $setting->is_active ? 'true' : 'false' }},
                 candidates: @js($candidates),
                 candidateImages: [],
                 chartInstance: null,
@@ -356,6 +357,7 @@
                         this.unvotedCount = data.unvoted_count;
                         this.turnoutPercentage = data.turnout_percentage;
                         this.isFrozen = data.is_frozen;
+                        this.isActive = Boolean(data.is_active);
                         this.lastUpdated = data.updated_at;
 
                         // Update chart if not frozen
@@ -457,15 +459,52 @@
     <main class="flex-1 flex flex-col justify-center">
         <!-- IF FROZEN MODE IS ACTIVE -->
         <div x-show="isFrozen" class="bg-slate-900/60 border-2 border-dashed border-slate-800 rounded-3xl p-8 sm:p-12 text-center max-w-4xl w-full mx-auto my-auto" x-cloak>
-            <div class="w-20 h-20 mx-auto mb-5 rounded-3xl bg-amber-950/60 border border-amber-800/60 text-amber-400 flex items-center justify-center shadow-lg shadow-amber-950/50">
-                <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+            <!-- Dynamic Icon -->
+            <div 
+                class="w-20 h-20 mx-auto mb-5 rounded-3xl flex items-center justify-center shadow-lg transition-all"
+                :class="isActive 
+                    ? 'bg-amber-950/60 border border-amber-800/60 text-amber-400 shadow-amber-950/50' 
+                    : 'bg-rose-950/60 border border-rose-800/60 text-rose-400 shadow-rose-950/50'"
+            >
+                <template x-if="isActive">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </template>
+                <template x-if="!isActive">
+                    <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </template>
             </div>
-            <span class="inline-block text-xs font-extrabold uppercase tracking-widest text-amber-400 mb-2 px-3.5 py-1.5 rounded-full bg-amber-950/80 border border-amber-800/40">
-                Freeze Mode &bull; Perolehan Suara Dirahasiakan
+
+            <!-- Dynamic Badge -->
+            <span 
+                class="inline-block text-xs font-extrabold uppercase tracking-widest mb-2 px-3.5 py-1.5 rounded-full border transition-all"
+                :class="isActive 
+                    ? 'bg-amber-950/80 border-amber-800/40 text-amber-400' 
+                    : 'bg-rose-950/80 border-rose-800/40 text-rose-400'"
+                x-text="isActive ? 'Freeze Mode • Perolehan Suara Dirahasiakan' : 'Pemungutan Suara Resmi Ditutup • Menunggu Sidang Pleno'"
+            >
+                {{ $setting->is_active ? 'Freeze Mode • Perolehan Suara Dirahasiakan' : 'Pemungutan Suara Resmi Ditutup • Menunggu Sidang Pleno' }}
             </span>
-            <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-1">Pemungutan Suara Sedang Berlangsung</h2>
+
+            <!-- Dynamic Heading -->
+            <h2 
+                class="text-2xl sm:text-3xl font-extrabold text-white mt-1 transition-all"
+                x-text="isActive ? 'Pemungutan Suara Sedang Berlangsung' : 'Pemungutan Suara Telah Berakhir'"
+            >
+                {{ $setting->is_active ? 'Pemungutan Suara Sedang Berlangsung' : 'Pemungutan Suara Telah Berakhir' }}
+            </h2>
+
+            <!-- Dynamic Description -->
             <p class="text-sm text-slate-400 max-w-2xl mx-auto mt-3 leading-relaxed">
-                Rincian perolehan suara {{ strtolower($setting->candidate_format_label) }} disembunyikan sementara selama proses pemungutan suara berlangsung demi menjaga netralitas dan asas LUBER. Grafik perolehan resmi akan dibuka serentak pada saat <strong>Sidang Pleno Penghitungan Suara</strong> oleh Panitia.
+                <template x-if="isActive">
+                    <span>
+                        Rincian perolehan suara {{ strtolower($setting->candidate_format_label) }} disembunyikan sementara selama proses pemungutan suara berlangsung demi menjaga netralitas dan asas LUBER. Grafik perolehan resmi akan dibuka serentak pada saat <strong>Sidang Pleno Penghitungan Suara</strong> oleh Panitia.
+                    </span>
+                </template>
+                <template x-if="!isActive">
+                    <span>
+                        Proses pemungutan suara telah resmi ditutup. Rincian perolehan suara {{ strtolower($setting->candidate_format_label) }} akan dibuka dan diumumkan secara resmi pada saat <strong>Sidang Pleno Penghitungan Suara</strong> oleh Panitia.
+                    </span>
+                </template>
             </p>
 
             <!-- Grid of candidates in silhouette / neutral mode -->

@@ -95,19 +95,20 @@
 
                                 const x = bar.x;
                                 const y = bar.y;
-                                const radius = 24; // 48px diameter avatar circle
-                                const centerY = Math.max(chart.chartArea.top + radius + 4, y - radius - 12);
+                                const radius = 34; // 68px diameter avatar circle (diperbesar)
+                                // Nempel langsung di ujung atas batang grafik seperti nomor 1
+                                const centerY = Math.max(chart.chartArea.top + radius + 4, y - 4);
                                 const candColor = cand.color_tag || cand.card_color || '#4f46e5';
 
                                 ctx.save();
 
                                 // 1. Glowing accent background circle
                                 ctx.beginPath();
-                                ctx.arc(x, centerY, radius + 3, 0, Math.PI * 2);
+                                ctx.arc(x, centerY, radius + 3.5, 0, Math.PI * 2);
                                 ctx.fillStyle = candColor;
-                                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-                                ctx.shadowBlur = 10;
-                                ctx.shadowOffsetY = 3;
+                                ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+                                ctx.shadowBlur = 12;
+                                ctx.shadowOffsetY = 4;
                                 ctx.fill();
 
                                 // 2. White border ring base
@@ -141,7 +142,7 @@
                                     ctx.fillStyle = '#0f172a';
                                     ctx.fillRect(x - radius, centerY - radius, radius * 2, radius * 2);
                                     ctx.fillStyle = '#ffffff';
-                                    ctx.font = 'bold 15px "Plus Jakarta Sans", sans-serif';
+                                    ctx.font = 'bold 18px "Plus Jakarta Sans", sans-serif';
                                     ctx.textAlign = 'center';
                                     ctx.textBaseline = 'middle';
                                     ctx.fillText(String(cand.candidate_number || (index + 1)).padStart(2, '0'), x, centerY);
@@ -151,24 +152,24 @@
                                 // 4. Crisp outer white border
                                 ctx.beginPath();
                                 ctx.arc(x, centerY, radius, 0, Math.PI * 2);
-                                ctx.lineWidth = 2.5;
+                                ctx.lineWidth = 3;
                                 ctx.strokeStyle = '#ffffff';
                                 ctx.stroke();
 
                                 // 5. Candidate number mini-badge pill at bottom right
-                                const badgeRadius = 8.5;
-                                const badgeX = x + radius - 4;
-                                const badgeY = centerY + radius - 4;
+                                const badgeRadius = 11;
+                                const badgeX = x + radius - 6;
+                                const badgeY = centerY + radius - 6;
                                 ctx.beginPath();
                                 ctx.arc(badgeX, badgeY, badgeRadius, 0, Math.PI * 2);
                                 ctx.fillStyle = candColor;
                                 ctx.fill();
-                                ctx.lineWidth = 1.5;
+                                ctx.lineWidth = 2;
                                 ctx.strokeStyle = '#ffffff';
                                 ctx.stroke();
 
                                 ctx.fillStyle = '#ffffff';
-                                ctx.font = 'bold 10px "Plus Jakarta Sans", sans-serif';
+                                ctx.font = 'bold 12px "Plus Jakarta Sans", sans-serif';
                                 ctx.textAlign = 'center';
                                 ctx.textBaseline = 'middle';
                                 ctx.fillText(String(cand.candidate_number || (index + 1)), badgeX, badgeY);
@@ -195,7 +196,7 @@
                             maintainAspectRatio: false,
                             layout: {
                                 padding: {
-                                    top: 45,
+                                    top: 55,
                                     left: 10,
                                     right: 10,
                                     bottom: 0

@@ -22,237 +22,241 @@
         [x-cloak] { display: none !important; }
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
     </style>
-</head>
-<body class="h-full flex flex-col justify-between overflow-x-hidden p-4 sm:p-6 lg:p-8 selection:bg-indigo-500 selection:text-white"
-    x-data="{
-        currentTime: '',
-        totalVoters: {{ $totalVoters }},
-        votedCount: {{ $votedCount }},
-        unvotedCount: {{ $unvotedCount }},
-        turnoutPercentage: {{ $turnoutPercentage }},
-        isFrozen: {{ $setting->show_quick_count ? 'false' : 'true' }},
-        candidates: @js($candidates),
-        chartInstance: null,
-        lastUpdated: '{{ now()->format('H:i:s') }}',
-        
-        candidateImages: [],
+    <script>
+        function proyektorApp() {
+            return {
+                currentTime: '',
+                totalVoters: {{ $totalVoters }},
+                votedCount: {{ $votedCount }},
+                unvotedCount: {{ $unvotedCount }},
+                turnoutPercentage: {{ $turnoutPercentage }},
+                isFrozen: {{ $setting->show_quick_count ? 'false' : 'true' }},
+                candidates: @js($candidates),
+                candidateImages: [],
+                chartInstance: null,
+                lastUpdated: '{{ now()->format('H:i:s') }}',
 
-        init() {
-            this.updateClock();
-            setInterval(() => this.updateClock(), 1000);
-            this.loadCandidateImages();
-            this.initChart();
-            setInterval(() => this.fetchLiveStats(), 4000);
-        },
+                init() {
+                    this.updateClock();
+                    setInterval(() => this.updateClock(), 1000);
+                    this.loadCandidateImages();
+                    this.initChart();
+                    setInterval(() => this.fetchLiveStats(), 4000);
+                },
 
-        loadCandidateImages() {
-            this.candidateImages = this.candidates.map((c) => {
-                const url = c.photo_url || (c.photo_path ? '{{ asset("storage") }}/' + c.photo_path : null);
-                if (!url) return null;
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-                img.src = url;
-                img.onload = () => {
-                    if (this.chartInstance) {
-                        this.chartInstance.draw();
-                    }
-                };
-                return img;
-            });
-        },
-
-        updateClock() {
-            const now = new Date();
-            this.currentTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB';
-        },
-
-        toggleFullscreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => {});
-            } else {
-                document.exitFullscreen().catch(err => {});
-            }
-        },
-
-        initChart() {
-            const ctx = document.getElementById('quickCountChart');
-            if (!ctx) return;
-
-            const self = this;
-            const labels = this.candidates.map(c => '{{ $setting->candidate_format_label }} ' + String(c.candidate_number).padStart(2, '0'));
-            const colors = this.candidates.map(c => c.color_tag || '#4f46e5');
-            const data = this.candidates.map(c => c.ballots_count || 0);
-
-            const candidateTopAvatarPlugin = {
-                id: 'candidateTopAvatarPlugin',
-                afterDatasetsDraw(chart) {
-                    const ctx = chart.ctx;
-                    const meta = chart.getDatasetMeta(0);
-                    if (!meta || !meta.data) return;
-
-                    meta.data.forEach((bar, index) => {
-                        const cand = (self.candidates && self.candidates[index]) ? self.candidates[index] : null;
-                        if (!cand) return;
-
-                        const x = bar.x;
-                        const y = bar.y;
-                        const radius = 24; // 48px diameter avatar circle
-                        const centerY = Math.max(chart.chartArea.top + radius + 4, y - radius - 12);
-                        const candColor = cand.color_tag || '#4f46e5';
-
-                        ctx.save();
-
-                        // 1. Draw glowing accent background circle
-                        ctx.beginPath();
-                        ctx.arc(x, centerY, radius + 3, 0, Math.PI * 2);
-                        ctx.fillStyle = candColor;
-                        ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-                        ctx.shadowBlur = 10;
-                        ctx.shadowOffsetY = 3;
-                        ctx.fill();
-
-                        // 2. Draw white border ring base
-                        ctx.beginPath();
-                        ctx.arc(x, centerY, radius + 2, 0, Math.PI * 2);
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fill();
-
-                        // 3. Clip circular avatar area
-                        ctx.save();
-                        ctx.beginPath();
-                        ctx.arc(x, centerY, radius, 0, Math.PI * 2);
-                        ctx.closePath();
-                        ctx.clip();
-
-                        const img = self.candidateImages ? self.candidateImages[index] : null;
-                        if (img && img.complete && img.naturalWidth !== 0) {
-                            // Calculate centered & top-biased cover crop
-                            const aspect = img.naturalWidth / img.naturalHeight;
-                            let sx = 0, sy = 0, sWidth = img.naturalWidth, sHeight = img.naturalHeight;
-                            if (aspect > 1) {
-                                sWidth = img.naturalHeight;
-                                sx = (img.naturalWidth - sWidth) / 2;
-                            } else {
-                                sHeight = img.naturalWidth;
-                                sy = (img.naturalHeight - sHeight) * 0.15; // prioritize face at top
+                loadCandidateImages() {
+                    this.candidateImages = this.candidates.map((c) => {
+                        const url = c.photo_url || (c.photo_path ? '{{ asset("storage") }}/' + c.photo_path : null);
+                        if (!url) return null;
+                        const img = new Image();
+                        img.crossOrigin = 'anonymous';
+                        img.src = url;
+                        img.onload = () => {
+                            if (this.chartInstance) {
+                                this.chartInstance.draw();
                             }
-                            ctx.drawImage(img, sx, sy, sWidth, sHeight, x - radius, centerY - radius, radius * 2, radius * 2);
-                        } else {
-                            // Fallback stylish circular badge with candidate number
-                            ctx.fillStyle = '#0f172a';
-                            ctx.fillRect(x - radius, centerY - radius, radius * 2, radius * 2);
-                            ctx.fillStyle = '#ffffff';
-                            ctx.font = 'bold 15px "Plus Jakarta Sans", sans-serif';
-                            ctx.textAlign = 'center';
-                            ctx.textBaseline = 'middle';
-                            ctx.fillText(String(cand.candidate_number || (index + 1)).padStart(2, '0'), x, centerY);
-                        }
-                        ctx.restore();
-
-                        // 4. Draw crisp outer white border
-                        ctx.beginPath();
-                        ctx.arc(x, centerY, radius, 0, Math.PI * 2);
-                        ctx.lineWidth = 2.5;
-                        ctx.strokeStyle = '#ffffff';
-                        ctx.stroke();
-
-                        // 5. Draw candidate number mini-badge pill at bottom right
-                        const badgeRadius = 8.5;
-                        const badgeX = x + radius - 4;
-                        const badgeY = centerY + radius - 4;
-                        ctx.beginPath();
-                        ctx.arc(badgeX, badgeY, badgeRadius, 0, Math.PI * 2);
-                        ctx.fillStyle = candColor;
-                        ctx.fill();
-                        ctx.lineWidth = 1.5;
-                        ctx.strokeStyle = '#ffffff';
-                        ctx.stroke();
-
-                        ctx.fillStyle = '#ffffff';
-                        ctx.font = 'bold 10px "Plus Jakarta Sans", sans-serif';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText(String(cand.candidate_number || (index + 1)), badgeX, badgeY);
-
-                        ctx.restore();
+                        };
+                        return img;
                     });
+                },
+
+                updateClock() {
+                    const now = new Date();
+                    this.currentTime = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB';
+                },
+
+                toggleFullscreen() {
+                    if (!document.fullscreenElement) {
+                        document.documentElement.requestFullscreen().catch(err => {});
+                    } else {
+                        document.exitFullscreen().catch(err => {});
+                    }
+                },
+
+                initChart() {
+                    const ctx = document.getElementById('quickCountChart');
+                    if (!ctx) return;
+
+                    const self = this;
+                    const labels = this.candidates.map(c => '{{ $setting->candidate_format_label }} ' + String(c.candidate_number).padStart(2, '0'));
+                    const colors = this.candidates.map(c => c.color_tag || c.card_color || '#4f46e5');
+                    const data = this.candidates.map(c => c.ballots_count || 0);
+
+                    const candidateTopAvatarPlugin = {
+                        id: 'candidateTopAvatarPlugin',
+                        afterDatasetsDraw(chart) {
+                            const ctx = chart.ctx;
+                            const meta = chart.getDatasetMeta(0);
+                            if (!meta || !meta.data) return;
+
+                            meta.data.forEach((bar, index) => {
+                                const cand = (self.candidates && self.candidates[index]) ? self.candidates[index] : null;
+                                if (!cand) return;
+
+                                const x = bar.x;
+                                const y = bar.y;
+                                const radius = 24; // 48px diameter avatar circle
+                                const centerY = Math.max(chart.chartArea.top + radius + 4, y - radius - 12);
+                                const candColor = cand.color_tag || cand.card_color || '#4f46e5';
+
+                                ctx.save();
+
+                                // 1. Glowing accent background circle
+                                ctx.beginPath();
+                                ctx.arc(x, centerY, radius + 3, 0, Math.PI * 2);
+                                ctx.fillStyle = candColor;
+                                ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+                                ctx.shadowBlur = 10;
+                                ctx.shadowOffsetY = 3;
+                                ctx.fill();
+
+                                // 2. White border ring base
+                                ctx.beginPath();
+                                ctx.arc(x, centerY, radius + 2, 0, Math.PI * 2);
+                                ctx.fillStyle = '#ffffff';
+                                ctx.fill();
+
+                                // 3. Clip circular avatar area
+                                ctx.save();
+                                ctx.beginPath();
+                                ctx.arc(x, centerY, radius, 0, Math.PI * 2);
+                                ctx.closePath();
+                                ctx.clip();
+
+                                const img = self.candidateImages ? self.candidateImages[index] : null;
+                                if (img && img.complete && img.naturalWidth !== 0) {
+                                    // Calculate centered & top-biased cover crop
+                                    const aspect = img.naturalWidth / img.naturalHeight;
+                                    let sx = 0, sy = 0, sWidth = img.naturalWidth, sHeight = img.naturalHeight;
+                                    if (aspect > 1) {
+                                        sWidth = img.naturalHeight;
+                                        sx = (img.naturalWidth - sWidth) / 2;
+                                    } else {
+                                        sHeight = img.naturalWidth;
+                                        sy = (img.naturalHeight - sHeight) * 0.15; // prioritize face at top
+                                    }
+                                    ctx.drawImage(img, sx, sy, sWidth, sHeight, x - radius, centerY - radius, radius * 2, radius * 2);
+                                } else {
+                                    // Fallback stylish circular badge with candidate number
+                                    ctx.fillStyle = '#0f172a';
+                                    ctx.fillRect(x - radius, centerY - radius, radius * 2, radius * 2);
+                                    ctx.fillStyle = '#ffffff';
+                                    ctx.font = 'bold 15px "Plus Jakarta Sans", sans-serif';
+                                    ctx.textAlign = 'center';
+                                    ctx.textBaseline = 'middle';
+                                    ctx.fillText(String(cand.candidate_number || (index + 1)).padStart(2, '0'), x, centerY);
+                                }
+                                ctx.restore();
+
+                                // 4. Crisp outer white border
+                                ctx.beginPath();
+                                ctx.arc(x, centerY, radius, 0, Math.PI * 2);
+                                ctx.lineWidth = 2.5;
+                                ctx.strokeStyle = '#ffffff';
+                                ctx.stroke();
+
+                                // 5. Candidate number mini-badge pill at bottom right
+                                const badgeRadius = 8.5;
+                                const badgeX = x + radius - 4;
+                                const badgeY = centerY + radius - 4;
+                                ctx.beginPath();
+                                ctx.arc(badgeX, badgeY, badgeRadius, 0, Math.PI * 2);
+                                ctx.fillStyle = candColor;
+                                ctx.fill();
+                                ctx.lineWidth = 1.5;
+                                ctx.strokeStyle = '#ffffff';
+                                ctx.stroke();
+
+                                ctx.fillStyle = '#ffffff';
+                                ctx.font = 'bold 10px "Plus Jakarta Sans", sans-serif';
+                                ctx.textAlign = 'center';
+                                ctx.textBaseline = 'middle';
+                                ctx.fillText(String(cand.candidate_number || (index + 1)), badgeX, badgeY);
+
+                                ctx.restore();
+                            });
+                        }
+                    };
+
+                    this.chartInstance = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: labels,
+                            datasets: [{
+                                label: 'Perolehan Suara',
+                                data: data,
+                                backgroundColor: colors,
+                                borderRadius: 12,
+                                borderSkipped: false,
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            layout: {
+                                padding: {
+                                    top: 45,
+                                    left: 10,
+                                    right: 10,
+                                    bottom: 0
+                                }
+                            },
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    callbacks: {
+                                        label: (context) => context.raw + ' Suara'
+                                    }
+                                }
+                            },
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    grace: '20%',
+                                    ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', weight: 'bold' } },
+                                    grid: { color: '#1e293b' }
+                                },
+                                x: {
+                                    ticks: { color: '#f8fafc', font: { family: 'Plus Jakarta Sans', weight: 'bold', size: 14 } },
+                                    grid: { display: false }
+                                }
+                            }
+                        },
+                        plugins: [candidateTopAvatarPlugin]
+                    });
+                },
+
+                async fetchLiveStats() {
+                    try {
+                        const res = await fetch('{{ route('proyektor.api') }}');
+                        if (!res.ok) return;
+                        const data = await res.json();
+                        
+                        this.totalVoters = data.total_voters;
+                        this.votedCount = data.voted_count;
+                        this.unvotedCount = data.unvoted_count;
+                        this.turnoutPercentage = data.turnout_percentage;
+                        this.isFrozen = data.is_frozen;
+                        this.lastUpdated = data.updated_at;
+
+                        // Update chart if not frozen
+                        if (!this.isFrozen && this.chartInstance && data.candidates) {
+                            if (data.candidate_label) {
+                                this.chartInstance.data.labels = data.candidates.map(c => data.candidate_label + ' ' + String(c.number).padStart(2, '0'));
+                            }
+                            this.chartInstance.data.datasets[0].data = data.candidates.map(c => c.votes || 0);
+                            this.chartInstance.update();
+                        }
+                    } catch (err) {
+                        console.error('Polling error:', err);
+                    }
                 }
             };
-
-            this.chartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Perolehan Suara',
-                        data: data,
-                        backgroundColor: colors,
-                        borderRadius: 12,
-                        borderSkipped: false,
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    layout: {
-                        padding: {
-                            top: 45,
-                            left: 10,
-                            right: 10,
-                            bottom: 0
-                        }
-                    },
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (context) => context.raw + ' Suara'
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grace: '20%',
-                            ticks: { color: '#94a3b8', font: { family: 'Plus Jakarta Sans', weight: 'bold' } },
-                            grid: { color: '#1e293b' }
-                        },
-                        x: {
-                            ticks: { color: '#f8fafc', font: { family: 'Plus Jakarta Sans', weight: 'bold', size: 14 } },
-                            grid: { display: false }
-                        }
-                    }
-                },
-                plugins: [candidateTopAvatarPlugin]
-            });
-        },
-
-        async fetchLiveStats() {
-            try {
-                const res = await fetch('{{ route('proyektor.api') }}');
-                if (!res.ok) return;
-                const data = await res.json();
-                
-                this.totalVoters = data.total_voters;
-                this.votedCount = data.voted_count;
-                this.unvotedCount = data.unvoted_count;
-                this.turnoutPercentage = data.turnout_percentage;
-                this.isFrozen = data.is_frozen;
-                this.lastUpdated = data.updated_at;
-
-                // Update chart if not frozen
-                if (!this.isFrozen && this.chartInstance && data.candidates) {
-                    if (data.candidate_label) {
-                        this.chartInstance.data.labels = data.candidates.map(c => data.candidate_label + ' ' + String(c.number).padStart(2, '0'));
-                    }
-                    this.chartInstance.data.datasets[0].data = data.candidates.map(c => c.votes || 0);
-                    this.chartInstance.update();
-                }
-            } catch (err) {
-                console.error('Polling error:', err);
-            }
         }
-    }"
+    </script>
+</head>
+<body class="h-full flex flex-col justify-between overflow-x-hidden p-4 sm:p-6 lg:p-8 selection:bg-indigo-500 selection:text-white"
+    x-data="proyektorApp()"
 >
     <!-- Top Header -->
     <header class="flex flex-col md:flex-row items-center justify-between gap-4 border-b border-slate-800 pb-5">
